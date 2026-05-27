@@ -17,7 +17,7 @@ const modulos = [
   },
   {
     href: '/ponto',
-    titulo: 'Ponto de Funcionários',
+    titulo: 'Registro de Horário',
     descricao: 'Registre entradas e saídas com foto e horário automático via webcam.',
     cor: 'bg-green-500',
     icon: '📋',
@@ -32,7 +32,7 @@ const modulos = [
   {
     href: '/admin',
     titulo: 'Administrativo',
-    descricao: 'Área protegida: gerencie funcionários, atividades e registros de ponto.',
+    descricao: 'Área protegida: gerencie funcionários, atividades e registros de horário.',
     cor: 'bg-gray-700',
     icon: '🔐',
   },

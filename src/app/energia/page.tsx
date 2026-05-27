@@ -8,10 +8,12 @@ import CalculadoraEnergia from '@/components/energia/CalculadoraEnergia'
 import { LeituraEnergia } from '@/types'
 import { formatarData, formatarNumero } from '@/lib/formatters'
 import Button from '@/components/ui/Button'
+import { useModo } from '@/context/ModoContext'
 
 export default function PaginaEnergia() {
   const [leituras, setLeituras] = useState<LeituraEnergia[]>([])
   const [loading, setLoading] = useState(true)
+  const { modo } = useModo()
 
   const carregarDados = useCallback(async () => {
     const data = await fetch('/api/energia').then((r) => r.json())
@@ -50,9 +52,11 @@ export default function PaginaEnergia() {
         <p className="mt-1 text-sm text-gray-500">Registre e acompanhe o consumo de energia elétrica</p>
       </div>
 
-      <Card title="Nova Leitura">
-        <FormMedicao onSalvo={carregarDados} />
-      </Card>
+      {modo === 'operacional' && (
+        <Card title="Nova Leitura">
+          <FormMedicao onSalvo={carregarDados} />
+        </Card>
+      )}
 
       {stats && (
         <div className="grid gap-4 sm:grid-cols-3">
@@ -90,7 +94,9 @@ export default function PaginaEnergia() {
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">Data</th>
                   <th className="px-4 py-3 text-right font-medium text-gray-700">Valor (kWh)</th>
-                  <th className="px-4 py-3 text-right font-medium text-gray-700">Ação</th>
+                  {modo === 'operacional' && (
+                    <th className="px-4 py-3 text-right font-medium text-gray-700">Ação</th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -98,9 +104,11 @@ export default function PaginaEnergia() {
                   <tr key={l._id}>
                     <td className="px-4 py-3">{formatarData(l.data)}</td>
                     <td className="px-4 py-3 text-right font-medium">{formatarNumero(l.valor)} kWh</td>
-                    <td className="px-4 py-3 text-right">
-                      <Button size="sm" variant="danger" onClick={() => deletar(l._id!)}>Deletar</Button>
-                    </td>
+                    {modo === 'operacional' && (
+                      <td className="px-4 py-3 text-right">
+                        <Button size="sm" variant="danger" onClick={() => deletar(l._id!)}>Deletar</Button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

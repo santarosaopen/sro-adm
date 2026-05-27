@@ -96,7 +96,7 @@ export default function CapturaFoto({ foto, onCaptura, onDescartar }: Props) {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={foto}
-          alt="Foto do ponto"
+          alt="Foto do registro"
           className="rounded-lg border border-gray-200"
           style={{ width: 320, height: 240, objectFit: 'cover' }}
         />

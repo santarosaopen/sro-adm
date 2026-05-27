@@ -8,11 +8,29 @@ import FormFuncionario from '@/components/admin/FormFuncionario'
 import ListaFuncionarios from '@/components/admin/ListaFuncionarios'
 import TabelaPontos from '@/components/admin/TabelaPontos'
 import TabelaLeituras from '@/components/admin/TabelaLeituras'
+import FormAdminUser from '@/components/admin/FormAdminUser'
+import TabelaLogs from '@/components/admin/TabelaLogs'
 import FormCota from '@/components/agua/FormCota'
+import FormGPS from '@/components/admin/FormGPS'
 import { Funcionario, RegistroPonto, LeituraAgua, LeituraEnergia } from '@/types'
 
-type Aba = 'funcionarios' | 'pontos' | 'medidas' | 'configuracoes'
+type Aba = 'funcionarios' | 'pontos' | 'medidas' | 'usuarios' | 'logs' | 'configuracoes'
 type Periodo = 'semana' | 'mes' | 'ano' | 'range'
+
+interface AdminUser {
+  _id: string
+  username: string
+  nome: string
+  ativo: boolean
+}
+
+interface LogEntry {
+  _id: string
+  adminUsername: string
+  acao: string
+  descricao: string
+  createdAt: string
+}
 
 function filtrarRegistros(
   registros: RegistroPonto[],
@@ -70,6 +88,16 @@ export default function PaginaAdmin() {
   // Configurações
   const [cotaAtual, setCotaAtual] = useState<number | undefined>()
 
+  // Usuários admin
+  const [usuarios, setUsuarios] = useState<AdminUser[]>([])
+  const [editandoUsuario, setEditandoUsuario] = useState<AdminUser | null>(null)
+  const [criandoUsuario, setCriandoUsuario] = useState(false)
+  const [carregandoUsuarios, setCarregandoUsuarios] = useState(false)
+
+  // Logs
+  const [logs, setLogs] = useState<LogEntry[]>([])
+  const [carregandoLogs, setCarregandoLogs] = useState(false)
+
   const carregarFuncionarios = useCallback(async () => {
     const data = await fetch('/api/funcionarios').then((r) => r.json())
     setFuncionarios(Array.isArray(data) ? data : [])
@@ -94,13 +122,35 @@ export default function PaginaAdmin() {
     }
   }, [])
 
+  const carregarUsuarios = useCallback(async () => {
+    setCarregandoUsuarios(true)
+    try {
+      const data = await fetch('/api/admin/usuarios').then((r) => r.json())
+      setUsuarios(Array.isArray(data) ? data : [])
+    } finally {
+      setCarregandoUsuarios(false)
+    }
+  }, [])
+
+  const carregarLogs = useCallback(async () => {
+    setCarregandoLogs(true)
+    try {
+      const data = await fetch('/api/logs').then((r) => r.json())
+      setLogs(Array.isArray(data) ? data : [])
+    } finally {
+      setCarregandoLogs(false)
+    }
+  }, [])
+
   useEffect(() => {
     Promise.all([carregarFuncionarios(), carregarCota()]).finally(() => setLoading(false))
   }, [carregarFuncionarios, carregarCota])
 
   useEffect(() => {
     if (aba === 'medidas') carregarMedidas()
-  }, [aba, carregarMedidas])
+    if (aba === 'usuarios') carregarUsuarios()
+    if (aba === 'logs') carregarLogs()
+  }, [aba, carregarMedidas, carregarUsuarios, carregarLogs])
 
   const carregarPontos = useCallback(async (id: string) => {
     if (!id) { setRegistros([]); return }
@@ -142,16 +192,39 @@ export default function PaginaAdmin() {
     setRegistros((prev) => prev.filter((r) => r._id !== id))
   }
 
+  async function toggleAtivoUsuario(usuario: AdminUser) {
+    await fetch(`/api/admin/usuarios/${usuario._id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ativo: !usuario.ativo }),
+    })
+    carregarUsuarios()
+  }
+
+  async function deletarUsuario(id: string) {
+    if (!confirm('Tem certeza que deseja remover este usuário?')) return
+    await fetch(`/api/admin/usuarios/${id}`, { method: 'DELETE' })
+    setUsuarios((prev) => prev.filter((u) => u._id !== id))
+  }
+
   function handleSalvoFuncionario() {
     setCriando(false)
     setEditando(null)
     carregarFuncionarios()
   }
 
+  function handleSalvoUsuario() {
+    setCriandoUsuario(false)
+    setEditandoUsuario(null)
+    carregarUsuarios()
+  }
+
   const abas: { key: Aba; label: string }[] = [
     { key: 'funcionarios', label: `Funcionários (${funcionarios.length})` },
-    { key: 'pontos', label: 'Registros de Ponto' },
+    { key: 'pontos', label: 'Registros de Horário' },
     { key: 'medidas', label: 'Medidas' },
+    { key: 'usuarios', label: 'Usuários' },
+    { key: 'logs', label: 'Logs' },
     { key: 'configuracoes', label: 'Configurações' },
   ]
 
@@ -169,12 +242,12 @@ export default function PaginaAdmin() {
         <Button variant="secondary" onClick={logout}>Sair</Button>
       </div>
 
-      <div className="flex gap-2 border-b border-gray-200">
+      <div className="flex flex-wrap gap-x-2 border-b border-gray-200">
         {abas.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setAba(tab.key)}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+            className={`whitespace-nowrap px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
               aba === tab.key
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -270,7 +343,7 @@ export default function PaginaAdmin() {
 
           {!funcionarioIdPonto ? (
             <p className="rounded-lg bg-gray-50 px-4 py-8 text-center text-sm text-gray-500">
-              Selecione um funcionário para visualizar os registros de ponto.
+              Selecione um funcionário para visualizar os registros de horário.
             </p>
           ) : carregandoPontos ? (
             <div className="py-8 text-center text-sm text-gray-400">Carregando...</div>
@@ -331,6 +404,92 @@ export default function PaginaAdmin() {
         </div>
       )}
 
+      {aba === 'usuarios' && (
+        <div className="space-y-4">
+          {!criandoUsuario && !editandoUsuario && (
+            <Button onClick={() => setCriandoUsuario(true)}>+ Novo Usuário</Button>
+          )}
+          {(criandoUsuario || editandoUsuario) && (
+            <Card title={editandoUsuario ? `Editar: ${editandoUsuario.username}` : 'Novo Usuário Admin'}>
+              <FormAdminUser
+                usuario={editandoUsuario}
+                onSalvo={handleSalvoUsuario}
+                onCancelar={() => { setCriandoUsuario(false); setEditandoUsuario(null) }}
+              />
+            </Card>
+          )}
+
+          {carregandoUsuarios ? (
+            <div className="py-8 text-center text-sm text-gray-400">Carregando...</div>
+          ) : (
+            <Card title={`Usuários (${usuarios.length})`}>
+              {usuarios.length === 0 ? (
+                <p className="py-4 text-center text-sm text-gray-400">Nenhum usuário cadastrado.</p>
+              ) : (
+                <div className="divide-y divide-gray-100">
+                  {usuarios.map((u) => (
+                    <div key={u._id} className="flex items-center justify-between py-3">
+                      <div>
+                        <p className="font-medium text-gray-900">{u.nome}</p>
+                        <p className="text-sm text-gray-500">@{u.username}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                            u.ativo
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-gray-100 text-gray-500'
+                          }`}
+                        >
+                          {u.ativo ? 'Ativo' : 'Inativo'}
+                        </span>
+                        <Button
+                          variant="secondary"
+                          className="text-xs"
+                          onClick={() => setEditandoUsuario(u)}
+                        >
+                          Editar
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          className="text-xs"
+                          onClick={() => toggleAtivoUsuario(u)}
+                        >
+                          {u.ativo ? 'Desativar' : 'Ativar'}
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          className="text-xs text-red-600 hover:text-red-700"
+                          onClick={() => deletarUsuario(u._id)}
+                        >
+                          Remover
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          )}
+        </div>
+      )}
+
+      {aba === 'logs' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-500">Últimas 200 entradas de auditoria do sistema.</p>
+            <Button variant="secondary" onClick={carregarLogs}>Atualizar</Button>
+          </div>
+          {carregandoLogs ? (
+            <div className="py-8 text-center text-sm text-gray-400">Carregando...</div>
+          ) : (
+            <Card>
+              <TabelaLogs logs={logs} />
+            </Card>
+          )}
+        </div>
+      )}
+
       {aba === 'configuracoes' && (
         <div className="space-y-4">
           <Card title="Cota de Consumo de Água">
@@ -343,6 +502,13 @@ export default function PaginaAdmin() {
                 Cota atual: <span className="font-semibold">{cotaAtual.toFixed(2)} m³/dia</span>
               </p>
             )}
+          </Card>
+
+          <Card title="Localização de Referência (GPS)">
+            <p className="mb-4 text-sm text-gray-500">
+              Define o ponto geográfico onde os registros de horário devem ser feitos. Quando configurado, o sistema bloqueia registros fora do raio de tolerância.
+            </p>
+            <FormGPS />
           </Card>
         </div>
       )}

@@ -20,7 +20,7 @@ export default function TabelaPontos({ registros, onDeletar }: Props) {
   if (!registros.length) {
     return (
       <p className="rounded-lg bg-gray-50 px-4 py-8 text-center text-sm text-gray-500">
-        Nenhum registro de ponto encontrado.
+        Nenhum registro de horário encontrado.
       </p>
     )
   }
@@ -52,7 +52,7 @@ export default function TabelaPontos({ registros, onDeletar }: Props) {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={r.foto}
-                    alt="Foto ponto"
+                    alt="Foto do registro"
                     className="mx-auto h-10 w-14 rounded object-cover"
                   />
                 ) : (
@@ -64,7 +64,7 @@ export default function TabelaPontos({ registros, onDeletar }: Props) {
                   size="sm"
                   variant="danger"
                   onClick={() => {
-                    if (confirm('Deletar este registro de ponto?')) onDeletar(r._id!)
+                    if (confirm('Deletar este registro de horário?')) onDeletar(r._id!)
                   }}
                 >
                   Deletar

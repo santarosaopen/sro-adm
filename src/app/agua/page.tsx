@@ -9,11 +9,13 @@ import BotaoExportarPDF from '@/components/agua/BotaoExportarPDF'
 import { LeituraAgua } from '@/types'
 import { formatarData, formatarNumero } from '@/lib/formatters'
 import Button from '@/components/ui/Button'
+import { useModo } from '@/context/ModoContext'
 
 export default function PaginaAgua() {
   const [leituras, setLeituras] = useState<LeituraAgua[]>([])
   const [cota, setCota] = useState<number | undefined>()
   const [loading, setLoading] = useState(true)
+  const { modo } = useModo()
 
   const carregarDados = useCallback(async () => {
     const [leiturasRes, cotaRes] = await Promise.all([
@@ -47,12 +49,14 @@ export default function PaginaAgua() {
           <h1 className="text-2xl font-bold text-gray-900">Medidas de Água</h1>
           <p className="mt-1 text-sm text-gray-500">Registre e acompanhe o consumo de água</p>
         </div>
-        <BotaoExportarPDF leituras={leituras} cota={cota} />
+        {modo === 'operacional' && <BotaoExportarPDF leituras={leituras} cota={cota} />}
       </div>
 
-      <Card title="Nova Leitura">
-        <FormMedicao onSalvo={carregarDados} />
-      </Card>
+      {modo === 'operacional' && (
+        <Card title="Nova Leitura">
+          <FormMedicao onSalvo={carregarDados} />
+        </Card>
+      )}
 
       {cota && (
         <div className="flex items-center gap-2 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-700">
@@ -77,7 +81,9 @@ export default function PaginaAgua() {
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">Data</th>
                   <th className="px-4 py-3 text-right font-medium text-gray-700">Valor (m³)</th>
-                  <th className="px-4 py-3 text-right font-medium text-gray-700">Ação</th>
+                  {modo === 'operacional' && (
+                    <th className="px-4 py-3 text-right font-medium text-gray-700">Ação</th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -85,9 +91,11 @@ export default function PaginaAgua() {
                   <tr key={l._id}>
                     <td className="px-4 py-3">{formatarData(l.data)}</td>
                     <td className="px-4 py-3 text-right font-medium">{formatarNumero(l.valor)} m³</td>
-                    <td className="px-4 py-3 text-right">
-                      <Button size="sm" variant="danger" onClick={() => deletar(l._id!)}>Deletar</Button>
-                    </td>
+                    {modo === 'operacional' && (
+                      <td className="px-4 py-3 text-right">
+                        <Button size="sm" variant="danger" onClick={() => deletar(l._id!)}>Deletar</Button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

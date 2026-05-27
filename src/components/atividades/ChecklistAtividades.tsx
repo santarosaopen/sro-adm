@@ -10,9 +10,10 @@ interface ItemLocal extends ItemAtividade {
 interface Props {
   funcionarioId: string
   data: string
+  readOnly?: boolean
 }
 
-export default function ChecklistAtividades({ funcionarioId, data }: Props) {
+export default function ChecklistAtividades({ funcionarioId, data, readOnly = false }: Props) {
   const [itens, setItens] = useState<ItemLocal[]>([])
   const [loading, setLoading] = useState(false)
   const [salvandoAuto, setSalvandoAuto] = useState(false)
@@ -69,6 +70,7 @@ export default function ChecklistAtividades({ funcionarioId, data }: Props) {
   }
 
   function toggleItem(index: number) {
+    if (readOnly) return
     setItens((prev) => {
       const novo = prev.map((item, i) =>
         i === index ? { ...item, concluida: !item.concluida } : item
@@ -125,7 +127,7 @@ export default function ChecklistAtividades({ funcionarioId, data }: Props) {
               style={{ width: `${total ? (concluidas / total) * 100 : 0}%` }}
             />
           </div>
-          {salvandoAuto && (
+          {salvandoAuto && !readOnly && (
             <span className="shrink-0 text-xs text-gray-400">Salvando...</span>
           )}
         </div>
@@ -136,7 +138,9 @@ export default function ChecklistAtividades({ funcionarioId, data }: Props) {
           {itens.map((item, i) => (
             <li key={item.nome}>
               <label
-                className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors ${
+                className={`flex items-center gap-3 rounded-lg border p-3 transition-colors ${
+                  readOnly ? 'cursor-default' : 'cursor-pointer'
+                } ${
                   item.concluida
                     ? 'border-green-200 bg-green-50'
                     : 'border-gray-200 hover:bg-gray-50'
@@ -146,7 +150,8 @@ export default function ChecklistAtividades({ funcionarioId, data }: Props) {
                   type="checkbox"
                   checked={item.concluida}
                   onChange={() => toggleItem(i)}
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  disabled={readOnly}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:cursor-default"
                 />
                 <span
                   className={`flex-1 text-sm ${
@@ -166,28 +171,30 @@ export default function ChecklistAtividades({ funcionarioId, data }: Props) {
         </ul>
       )}
 
-      <div className="rounded-lg border border-dashed border-gray-300 p-3">
-        <p className="mb-2 text-xs font-medium text-gray-500">Registrar atividade extra do dia</p>
-        <div className="flex gap-2">
-          <input
-            ref={inputRef}
-            type="text"
-            placeholder="Descreva a atividade realizada..."
-            value={novaAtividade}
-            onChange={(e) => setNovaAtividade(e.target.value)}
-            onKeyDown={handleKeyDown}
-            maxLength={120}
-            className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          />
-          <button
-            onClick={adicionarAtividade}
-            disabled={!novaAtividade.trim()}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"
-          >
-            + Adicionar
-          </button>
+      {!readOnly && (
+        <div className="rounded-lg border border-dashed border-gray-300 p-3">
+          <p className="mb-2 text-xs font-medium text-gray-500">Registrar atividade extra do dia</p>
+          <div className="flex gap-2">
+            <input
+              ref={inputRef}
+              type="text"
+              placeholder="Descreva a atividade realizada..."
+              value={novaAtividade}
+              onChange={(e) => setNovaAtividade(e.target.value)}
+              onKeyDown={handleKeyDown}
+              maxLength={120}
+              className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+            <button
+              onClick={adicionarAtividade}
+              disabled={!novaAtividade.trim()}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"
+            >
+              + Adicionar
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {!itens.length && (
         <p className="text-sm text-gray-500">
