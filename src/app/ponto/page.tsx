@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import Card from '@/components/ui/Card'
 import RelogioAtual from '@/components/ponto/RelogioAtual'
 import SeletorFuncionario from '@/components/ponto/SeletorFuncionario'
 import CapturaFoto from '@/components/ponto/CapturaFoto'
 import TabelaHorariosPonto from '@/components/ponto/TabelaHorariosPonto'
-import PresencaAtual from '@/components/ponto/PresencaAtual'
+import PresencaAtual, { PresencaAtualRef } from '@/components/ponto/PresencaAtual'
 import Button from '@/components/ui/Button'
 import { RegistroPonto } from '@/types'
 import { distanciaMetros } from '@/lib/gps'
@@ -50,6 +50,7 @@ function filtrarPorPeriodo(
 
 export default function PaginaPonto() {
   const { modo } = useModo()
+  const presencaRef = useRef<PresencaAtualRef>(null)
   const [funcionarioId, setFuncionarioId] = useState('')
   const [foto, setFoto] = useState<string | null>(null)
   const [registros, setRegistros] = useState<RegistroPonto[]>([])
@@ -144,6 +145,7 @@ export default function PaginaPonto() {
       setFoto(null)
       setMensagem({ tipo: 'sucesso', texto: `${tipo === 'entrada' ? 'Entrada' : 'Saída'} registrada com sucesso!` })
       carregarRegistros(funcionarioId)
+      presencaRef.current?.atualizar()
     } catch {
       setMensagem({ tipo: 'erro', texto: 'Erro ao registrar horário. Tente novamente.' })
     } finally {
@@ -151,7 +153,7 @@ export default function PaginaPonto() {
     }
   }
 
-  // Modo visualização: mostra presença atual
+  // Modo visualização: mostra presença atual (sem relógio)
   if (modo === 'visualizacao') {
     return (
       <div className="space-y-6">
@@ -159,8 +161,7 @@ export default function PaginaPonto() {
           <h1 className="text-2xl font-bold text-gray-900">Presença Atual</h1>
           <p className="mt-1 text-sm text-gray-500">Funcionários presentes hoje com base nos registros de horário</p>
         </div>
-        <RelogioAtual />
-        <PresencaAtual />
+        <PresencaAtual ref={presencaRef} />
       </div>
     )
   }
