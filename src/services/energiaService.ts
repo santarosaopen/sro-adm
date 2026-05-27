@@ -16,6 +16,14 @@ export async function salvarLeitura(dados: {
   return LeituraEnergiaModel.create({ ...dados, data: new Date(dados.data) })
 }
 
+export async function editarLeitura(id: string, dados: { valor?: number; data?: string }) {
+  await connectDB()
+  const update: Record<string, unknown> = {}
+  if (dados.valor !== undefined) update.valor = dados.valor
+  if (dados.data) update.data = new Date(dados.data)
+  return LeituraEnergiaModel.findByIdAndUpdate(id, update, { new: true }).lean()
+}
+
 export async function deletarLeitura(id: string) {
   await connectDB()
   return LeituraEnergiaModel.findByIdAndDelete(id)

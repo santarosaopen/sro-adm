@@ -17,6 +17,14 @@ export async function salvarLeitura(dados: {
   return LeituraAguaModel.create({ ...dados, data: new Date(dados.data) })
 }
 
+export async function editarLeitura(id: string, dados: { valor?: number; data?: string }) {
+  await connectDB()
+  const update: Record<string, unknown> = {}
+  if (dados.valor !== undefined) update.valor = dados.valor
+  if (dados.data) update.data = new Date(dados.data)
+  return LeituraAguaModel.findByIdAndUpdate(id, update, { new: true }).lean()
+}
+
 export async function deletarLeitura(id: string) {
   await connectDB()
   return LeituraAguaModel.findByIdAndDelete(id)

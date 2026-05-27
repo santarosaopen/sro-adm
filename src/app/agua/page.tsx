@@ -5,7 +5,6 @@ import Card from '@/components/ui/Card'
 import FormMedicao from '@/components/agua/FormMedicao'
 import GraficoConsumo from '@/components/agua/GraficoConsumo'
 import EstatisticasConsumo from '@/components/agua/EstatisticasConsumo'
-import FormCota from '@/components/agua/FormCota'
 import BotaoExportarPDF from '@/components/agua/BotaoExportarPDF'
 import { LeituraAgua } from '@/types'
 import { formatarData, formatarNumero } from '@/lib/formatters'
@@ -55,9 +54,12 @@ export default function PaginaAgua() {
         <FormMedicao onSalvo={carregarDados} />
       </Card>
 
-      <Card title="Definir Cota Diária">
-        <FormCota cotaAtual={cota} onAtualizado={setCota} />
-      </Card>
+      {cota && (
+        <div className="flex items-center gap-2 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+          <span>Cota diária definida:</span>
+          <span className="font-semibold">{cota.toFixed(2)} m³/dia</span>
+        </div>
+      )}
 
       <Card title="Estatísticas">
         <EstatisticasConsumo leituras={leituras} cota={cota} />
