@@ -12,10 +12,40 @@ import { RegistroPonto } from '@/types'
 import { distanciaMetros } from '@/lib/gps'
 import { useModo } from '@/context/ModoContext'
 
+type Periodo = 'semana' | 'mes' | 'ano' | 'range'
+
 interface GpsRef {
   latitude: number
   longitude: number
   raioMetros: number
+}
+
+function filtrarPorPeriodo(
+  registros: RegistroPonto[],
+  periodo: Periodo,
+  dataInicio: string,
+  dataFim: string
+): RegistroPonto[] {
+  if (periodo === 'range') {
+    return registros.filter((r) => {
+      const ts = new Date(r.timestamp)
+      if (dataInicio && ts < new Date(dataInicio + 'T00:00:00')) return false
+      if (dataFim && ts > new Date(dataFim + 'T23:59:59')) return false
+      return true
+    })
+  }
+  const agora = new Date()
+  let inicio: Date
+  if (periodo === 'semana') {
+    inicio = new Date(agora)
+    inicio.setDate(agora.getDate() - 6)
+    inicio.setHours(0, 0, 0, 0)
+  } else if (periodo === 'mes') {
+    inicio = new Date(agora.getFullYear(), agora.getMonth(), 1)
+  } else {
+    inicio = new Date(agora.getFullYear(), 0, 1)
+  }
+  return registros.filter((r) => new Date(r.timestamp) >= inicio)
 }
 
 export default function PaginaPonto() {
@@ -26,6 +56,7 @@ export default function PaginaPonto() {
   const [carregando, setCarregando] = useState(false)
   const [salvando, setSalvando] = useState(false)
   const [mensagem, setMensagem] = useState<{ tipo: 'sucesso' | 'erro'; texto: string } | null>(null)
+  const [periodo, setPeriodo] = useState<Periodo>('semana')
   const [dataInicio, setDataInicio] = useState('')
   const [dataFim, setDataFim] = useState('')
   const [gpsRef, setGpsRef] = useState<GpsRef | null>(null)
@@ -65,12 +96,13 @@ export default function PaginaPonto() {
     setMensagem(null)
   }
 
-  const registrosFiltrados = registros.filter((r) => {
-    const ts = new Date(r.timestamp)
-    if (dataInicio && ts < new Date(dataInicio + 'T00:00:00')) return false
-    if (dataFim && ts > new Date(dataFim + 'T23:59:59')) return false
-    return true
-  })
+  function selecionarPeriodo(p: Periodo) {
+    setPeriodo(p)
+    setDataInicio('')
+    setDataFim('')
+  }
+
+  const registrosFiltrados = filtrarPorPeriodo(registros, periodo, dataInicio, dataFim)
 
   async function verificarGPS(): Promise<{ ok: boolean; mensagem: string }> {
     if (!gpsRef) return { ok: true, mensagem: '' }
@@ -119,7 +151,7 @@ export default function PaginaPonto() {
     }
   }
 
-  // Modo visualização: apenas mostra presença atual
+  // Modo visualização: mostra presença atual
   if (modo === 'visualizacao') {
     return (
       <div className="space-y-6">
@@ -166,23 +198,61 @@ export default function PaginaPonto() {
 
       {funcionarioId && (
         <Card title="Histórico de Horários">
-          <div className="mb-4 flex flex-wrap items-end gap-4">
+          {/* Filtros de período */}
+          <div className="mb-5 flex flex-wrap items-end gap-3">
+            <div>
+              <p className="mb-1 text-xs font-medium text-gray-600">Período</p>
+              <div className="flex gap-1">
+                {(['semana', 'mes', 'ano'] as Periodo[]).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => selecionarPeriodo(p)}
+                    className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                      periodo === p
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {p === 'semana' ? 'Semana' : p === 'mes' ? 'Mês' : 'Ano'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div>
               <label className="mb-1 block text-xs font-medium text-gray-600">Data início</label>
-              <input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)}
-                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+              <input
+                type="date"
+                value={dataInicio}
+                onChange={(e) => { setDataInicio(e.target.value); setPeriodo('range') }}
+                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
             </div>
+
             <div>
               <label className="mb-1 block text-xs font-medium text-gray-600">Data fim</label>
-              <input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)}
-                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+              <input
+                type="date"
+                value={dataFim}
+                onChange={(e) => { setDataFim(e.target.value); setPeriodo('range') }}
+                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
             </div>
+
             {(dataInicio || dataFim) && (
-              <button onClick={() => { setDataInicio(''); setDataFim('') }} className="text-sm text-gray-400 hover:text-gray-600">
-                Limpar filtro
+              <button
+                onClick={() => selecionarPeriodo('semana')}
+                className="text-sm text-gray-400 hover:text-gray-600"
+              >
+                Limpar
               </button>
             )}
           </div>
+
+          <p className="mb-3 text-xs text-gray-400">
+            {registrosFiltrados.length} registro{registrosFiltrados.length !== 1 ? 's' : ''}
+          </p>
+
           {carregando ? (
             <div className="py-6 text-center text-sm text-gray-400">Carregando...</div>
           ) : (
