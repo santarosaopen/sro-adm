@@ -1,8 +1,8 @@
-import { LeituraAgua } from '@/types'
+import { LeituraEnergia } from '@/types'
 import { formatarData, formatarNumero } from '@/lib/formatters'
 
 interface Props {
-  leituras: LeituraAgua[]
+  leituras: LeituraEnergia[]
 }
 
 export default function EstatisticasConsumo({ leituras }: Props) {
@@ -52,7 +52,6 @@ export default function EstatisticasConsumo({ leituras }: Props) {
       }))
       mediaDiaria = deltasEntre.reduce((s, d) => s + d.delta, 0) / deltasEntre.length
     } else {
-      // Fallback: consumo total / dias entre as duas leituras da companhia
       const diasEntre =
         (new Date(compRecente.data).getTime() - new Date(compAnterior.data).getTime()) /
         (1000 * 60 * 60 * 24)
@@ -60,7 +59,6 @@ export default function EstatisticasConsumo({ leituras }: Props) {
     }
     mediaLabel = `${formatarData(compAnterior.data)} – ${formatarData(compRecente.data)}`
   } else if (mensais.length === 1) {
-    // Apenas 1 leitura da companhia: média das leituras diárias a partir dela
     const comp = mensais[0]
     const diariasApos = diarias.filter((l) => new Date(l.data) >= new Date(comp.data))
     if (diariasApos.length >= 2) {
@@ -71,40 +69,32 @@ export default function EstatisticasConsumo({ leituras }: Props) {
       mediaLabel = `desde ${formatarData(comp.data)}`
     }
   } else {
-    // Sem leitura da companhia: média geral dos deltas
     mediaDiaria = deltas.reduce((s, d) => s + d.delta, 0) / deltas.length
     mediaLabel = 'todas as leituras'
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-3">
       <StatCard
         label="Maior consumo diário"
-        value={`${formatarNumero(maiorDelta.delta)} m³`}
+        value={`${formatarNumero(maiorDelta.delta)} kWh`}
         sub={formatarData(maiorDelta.data)}
-        color="text-red-600"
-        bg="bg-red-50"
+        color="text-yellow-600"
+        bg="bg-yellow-50"
       />
       <StatCard
         label="Menor consumo diário"
-        value={`${formatarNumero(menorDelta.delta)} m³`}
+        value={`${formatarNumero(menorDelta.delta)} kWh`}
         sub={formatarData(menorDelta.data)}
         color="text-green-600"
         bg="bg-green-50"
       />
       <StatCard
         label="Média diária"
-        value={mediaDiaria !== null ? `${formatarNumero(mediaDiaria)} m³` : '—'}
+        value={mediaDiaria !== null ? `${formatarNumero(mediaDiaria)} kWh` : '—'}
         sub={mediaLabel || `${deltas.length} intervalos`}
         color="text-blue-600"
         bg="bg-blue-50"
-      />
-      <StatCard
-        label="Total de leituras"
-        value={`${diarias.length}`}
-        sub="registros diários"
-        color="text-gray-700"
-        bg="bg-gray-50"
       />
     </div>
   )

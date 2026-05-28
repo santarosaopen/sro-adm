@@ -5,6 +5,7 @@ import Card from '@/components/ui/Card'
 import FormMedicao from '@/components/agua/FormMedicao'
 import GraficoConsumo from '@/components/agua/GraficoConsumo'
 import EstatisticasConsumo from '@/components/agua/EstatisticasConsumo'
+import ConsumoCotas from '@/components/agua/ConsumoCotas'
 import BotaoExportarPDF from '@/components/agua/BotaoExportarPDF'
 import { LeituraAgua } from '@/types'
 import { formatarData, formatarNumero } from '@/lib/formatters'
@@ -14,16 +15,19 @@ import { useModo } from '@/context/ModoContext'
 export default function PaginaAgua() {
   const [leituras, setLeituras] = useState<LeituraAgua[]>([])
   const [cota, setCota] = useState<number | undefined>()
+  const [nomeEmpresa, setNomeEmpresa] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const { modo } = useModo()
 
   const carregarDados = useCallback(async () => {
-    const [leiturasRes, cotaRes] = await Promise.all([
+    const [leiturasRes, cotaRes, nomeRes] = await Promise.all([
       fetch('/api/agua').then((r) => r.json()),
       fetch('/api/configuracao?chave=cota_agua').then((r) => r.json()),
+      fetch('/api/configuracao?chave=nome_empresa_agua').then((r) => r.json()),
     ])
     setLeituras(Array.isArray(leiturasRes) ? leiturasRes : [])
     if (cotaRes?.valor) setCota(Number(cotaRes.valor))
+    if (nomeRes?.valor) setNomeEmpresa(nomeRes.valor)
     setLoading(false)
   }, [])
 
@@ -58,19 +62,16 @@ export default function PaginaAgua() {
         </Card>
       )}
 
-      {cota && (
-        <div className="flex items-center gap-2 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-700">
-          <span>Cota diária definida:</span>
-          <span className="font-semibold">{cota.toFixed(2)} m³/dia</span>
-        </div>
-      )}
+      <Card title="Consumo vs. Cota">
+        <ConsumoCotas leituras={leituras} cota={cota} />
+      </Card>
 
       <Card title="Estatísticas">
-        <EstatisticasConsumo leituras={leituras} cota={cota} />
+        <EstatisticasConsumo leituras={leituras} />
       </Card>
 
       <Card title="Gráfico de Consumo (Medições Diárias)">
-        <GraficoConsumo leituras={leituras} cota={cota} />
+        <GraficoConsumo leituras={leituras} cota={cota} nomeEmpresa={nomeEmpresa} />
       </Card>
 
       {mensais.length > 0 && (

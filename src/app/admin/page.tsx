@@ -12,6 +12,7 @@ import FormAdminUser from '@/components/admin/FormAdminUser'
 import TabelaLogs from '@/components/admin/TabelaLogs'
 import FormCota from '@/components/agua/FormCota'
 import FormGPS from '@/components/admin/FormGPS'
+import FormNomeEmpresa from '@/components/admin/FormNomeEmpresa'
 import { Funcionario, RegistroPonto, LeituraAgua, LeituraEnergia } from '@/types'
 
 type Aba = 'funcionarios' | 'pontos' | 'medidas' | 'usuarios' | 'logs' | 'configuracoes'
@@ -87,6 +88,8 @@ export default function PaginaAdmin() {
 
   // Configurações
   const [cotaAtual, setCotaAtual] = useState<number | undefined>()
+  const [nomeEmpresaAgua, setNomeEmpresaAgua] = useState<string>('')
+  const [nomeEmpresaEnergia, setNomeEmpresaEnergia] = useState<string>('')
 
   // Usuários admin
   const [usuarios, setUsuarios] = useState<AdminUser[]>([])
@@ -106,6 +109,15 @@ export default function PaginaAdmin() {
   const carregarCota = useCallback(async () => {
     const res = await fetch('/api/configuracao?chave=cota_agua').then((r) => r.json())
     if (res?.valor) setCotaAtual(Number(res.valor))
+  }, [])
+
+  const carregarNomesEmpresa = useCallback(async () => {
+    const [aguaRes, energiaRes] = await Promise.all([
+      fetch('/api/configuracao?chave=nome_empresa_agua').then((r) => r.json()),
+      fetch('/api/configuracao?chave=nome_empresa_energia').then((r) => r.json()),
+    ])
+    if (aguaRes?.valor) setNomeEmpresaAgua(aguaRes.valor)
+    if (energiaRes?.valor) setNomeEmpresaEnergia(energiaRes.valor)
   }, [])
 
   const carregarMedidas = useCallback(async () => {
@@ -143,8 +155,8 @@ export default function PaginaAdmin() {
   }, [])
 
   useEffect(() => {
-    Promise.all([carregarFuncionarios(), carregarCota()]).finally(() => setLoading(false))
-  }, [carregarFuncionarios, carregarCota])
+    Promise.all([carregarFuncionarios(), carregarCota(), carregarNomesEmpresa()]).finally(() => setLoading(false))
+  }, [carregarFuncionarios, carregarCota, carregarNomesEmpresa])
 
   useEffect(() => {
     if (aba === 'medidas') carregarMedidas()
@@ -506,6 +518,20 @@ export default function PaginaAdmin() {
                 Cota atual: <span className="font-semibold">{cotaAtual.toFixed(2)} m³/dia</span>
               </p>
             )}
+          </Card>
+
+          <Card title="Nome da Companhia de Água">
+            <p className="mb-4 text-sm text-gray-500">
+              Define o nome que aparece nas marcações de leitura da companhia no gráfico de água (ex: SABESP, COPASA).
+            </p>
+            <FormNomeEmpresa chave="nome_empresa_agua" nomeAtual={nomeEmpresaAgua} onAtualizado={setNomeEmpresaAgua} />
+          </Card>
+
+          <Card title="Nome da Companhia de Energia">
+            <p className="mb-4 text-sm text-gray-500">
+              Define o nome que aparece nas marcações de leitura da companhia no gráfico de energia (ex: COPEL, CEMIG).
+            </p>
+            <FormNomeEmpresa chave="nome_empresa_energia" nomeAtual={nomeEmpresaEnergia} onAtualizado={setNomeEmpresaEnergia} />
           </Card>
 
           <Card title="Localização de Referência (GPS)">

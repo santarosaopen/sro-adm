@@ -7,7 +7,13 @@
       "Bash(git stash *)",
       "Bash(git reflog *)",
       "Bash(git gc *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(curl -s \"https://sro-adm.vercel.app/api/ponto/presenca\")",
+      "Bash(curl -s \"https://sro-adm.vercel.app/api/ponto?funcionarioId=test\")",
+      "Bash(curl -s \"https://sro-adm.vercel.app/api/funcionarios\")",
+      "Bash(curl -s \"https://sro-adm.vercel.app/api/ponto\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

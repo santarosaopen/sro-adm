@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import Card from '@/components/ui/Card'
 import FormMedicao from '@/components/energia/FormMedicao'
 import GraficoConsumo from '@/components/energia/GraficoConsumo'
+import EstatisticasConsumo from '@/components/energia/EstatisticasConsumo'
 import CalculadoraEnergia from '@/components/energia/CalculadoraEnergia'
 import { LeituraEnergia } from '@/types'
 import { formatarData, formatarNumero } from '@/lib/formatters'
@@ -12,12 +13,17 @@ import { useModo } from '@/context/ModoContext'
 
 export default function PaginaEnergia() {
   const [leituras, setLeituras] = useState<LeituraEnergia[]>([])
+  const [nomeEmpresa, setNomeEmpresa] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const { modo } = useModo()
 
   const carregarDados = useCallback(async () => {
-    const data = await fetch('/api/energia').then((r) => r.json())
+    const [data, nomeRes] = await Promise.all([
+      fetch('/api/energia').then((r) => r.json()),
+      fetch('/api/configuracao?chave=nome_empresa_energia').then((r) => r.json()),
+    ])
     setLeituras(Array.isArray(data) ? data : [])
+    if (nomeRes?.valor) setNomeEmpresa(nomeRes.valor)
     setLoading(false)
   }, [])
 
@@ -30,16 +36,7 @@ export default function PaginaEnergia() {
     setLeituras((prev) => prev.filter((l) => l._id !== id))
   }
 
-  const diarias = leituras.filter((l) => l.tipo === 'diaria')
   const mensais = leituras.filter((l) => l.tipo === 'mensal')
-
-  const stats = diarias.length
-    ? {
-        media: diarias.reduce((s, l) => s + l.valor, 0) / diarias.length,
-        maximo: [...diarias].sort((a, b) => b.valor - a.valor)[0],
-        minimo: [...diarias].sort((a, b) => a.valor - b.valor)[0],
-      }
-    : null
 
   if (loading) {
     return <div className="text-center py-20 text-gray-400">Carregando...</div>
@@ -58,28 +55,12 @@ export default function PaginaEnergia() {
         </Card>
       )}
 
-      {stats && (
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className="rounded-xl bg-yellow-50 p-4">
-            <p className="text-xs font-medium text-gray-500">Maior consumo</p>
-            <p className="mt-1 text-xl font-bold text-yellow-600">{formatarNumero(stats.maximo.valor)} kWh</p>
-            <p className="text-xs text-gray-400">{formatarData(stats.maximo.data)}</p>
-          </div>
-          <div className="rounded-xl bg-green-50 p-4">
-            <p className="text-xs font-medium text-gray-500">Menor consumo</p>
-            <p className="mt-1 text-xl font-bold text-green-600">{formatarNumero(stats.minimo.valor)} kWh</p>
-            <p className="text-xs text-gray-400">{formatarData(stats.minimo.data)}</p>
-          </div>
-          <div className="rounded-xl bg-blue-50 p-4">
-            <p className="text-xs font-medium text-gray-500">Média diária</p>
-            <p className="mt-1 text-xl font-bold text-blue-600">{formatarNumero(stats.media)} kWh</p>
-            <p className="text-xs text-gray-400">{diarias.length} leituras</p>
-          </div>
-        </div>
-      )}
+      <Card title="Estatísticas">
+        <EstatisticasConsumo leituras={leituras} />
+      </Card>
 
       <Card title="Gráfico de Consumo">
-        <GraficoConsumo leituras={leituras} />
+        <GraficoConsumo leituras={leituras} nomeEmpresa={nomeEmpresa} />
       </Card>
 
       <Card title="Calculadora de Custo Estimado">
