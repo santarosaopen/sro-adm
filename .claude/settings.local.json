@@ -13,7 +13,8 @@
       "Bash(curl -s \"https://sro-adm.vercel.app/api/funcionarios\")",
       "Bash(curl -s \"https://sro-adm.vercel.app/api/ponto\")",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(Test-Path \"c:\\\\Users\\\\silvalucas\\\\Documents\\\\SRO\\\\README.md\")"
     ]
   }
 }
