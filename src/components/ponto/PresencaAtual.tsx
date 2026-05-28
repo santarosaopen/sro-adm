@@ -33,8 +33,17 @@ const PresencaAtual = forwardRef<PresencaAtualRef>((_, ref) => {
 
   useEffect(() => {
     buscar()
-    const interval = setInterval(() => buscar(true), 120_000)
-    return () => clearInterval(interval)
+    const interval = setInterval(() => buscar(true), 60_000)
+
+    function handleVisibilidade() {
+      if (!document.hidden) buscar(true)
+    }
+    document.addEventListener('visibilitychange', handleVisibilidade)
+
+    return () => {
+      clearInterval(interval)
+      document.removeEventListener('visibilitychange', handleVisibilidade)
+    }
   }, [buscar])
 
   useImperativeHandle(ref, () => ({ atualizar: () => buscar(true) }), [buscar])

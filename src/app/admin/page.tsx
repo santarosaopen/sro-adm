@@ -188,7 +188,11 @@ export default function PaginaAdmin() {
   }
 
   async function deletarPonto(id: string) {
-    await fetch(`/api/ponto/${id}`, { method: 'DELETE' })
+    const res = await fetch(`/api/ponto/${id}`, { method: 'DELETE' })
+    if (!res.ok) {
+      alert('Erro ao deletar registro. Tente novamente.')
+      return
+    }
     setRegistros((prev) => prev.filter((r) => r._id !== id))
   }
 
