@@ -8,9 +8,15 @@ export async function GET() {
   try {
     await connectDB()
 
+    // Usa horário de Brasília (UTC-3) para definir o início/fim do dia
     const agora = new Date()
-    const hoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), 0, 0, 0, 0)
-    const amanha = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() + 1, 0, 0, 0, 0)
+    const agoraBrasil = new Date(agora.getTime() - 3 * 60 * 60 * 1000)
+    const ano = agoraBrasil.getUTCFullYear()
+    const mes = agoraBrasil.getUTCMonth()
+    const dia = agoraBrasil.getUTCDate()
+    // Meia-noite BRT = 03:00 UTC
+    const hoje = new Date(Date.UTC(ano, mes, dia, 3, 0, 0, 0))
+    const amanha = new Date(Date.UTC(ano, mes, dia + 1, 3, 0, 0, 0))
 
     // Todos os registros de hoje, do mais recente para o mais antigo
     const registros = await RegistroPontoModel.find({
