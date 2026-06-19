@@ -1,16 +1,12 @@
 import type mongoose from 'mongoose'
+import type { Db } from 'mongodb'
 
 const DEFAULTS = {
   retencao_presencas_dias: 30,
   retencao_execucoes_dias: 90,
 }
 
-async function setTTL(
-  db: ReturnType<typeof mongoose.connection.useDb>,
-  collectionName: string,
-  field: string,
-  days: number
-) {
+async function setTTL(db: Db, collectionName: string, field: string, days: number) {
   const seconds = days * 24 * 60 * 60
   try {
     await db.collection(collectionName).createIndex(
@@ -19,7 +15,6 @@ async function setTTL(
     )
   } catch (e: unknown) {
     const code = (e as { code?: number }).code
-    // 85 = IndexOptionsConflict, 86 = IndexKeySpecsConflict — index exists with different TTL
     if (code === 85 || code === 86) {
       await db.command({
         collMod: collectionName,
@@ -31,9 +26,8 @@ async function setTTL(
 
 export async function syncTTLIndexes(conn: typeof mongoose) {
   try {
-    const db = conn.connection.db as ReturnType<typeof mongoose.connection.useDb>
+    const db = conn.connection.db as Db
 
-    // Ler config diretamente para evitar dependência circular com connectDB
     const configs = await db
       .collection('configuracaos')
       .find({ chave: { $in: ['retencao_presencas_dias', 'retencao_execucoes_dias'] } })

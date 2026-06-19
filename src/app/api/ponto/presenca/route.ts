@@ -28,8 +28,8 @@ export async function GET() {
 
     if (!registros.length) return NextResponse.json([])
 
-    const funcionarioIds = [...new Set(registros.map((r) => String(r.funcionarioId)))]
-    const funcaoIds = [...new Set(registros.map((r) => String(r.funcaoId)))]
+    const funcionarioIds = Array.from(new Set(registros.map((r) => String(r.funcionarioId))))
+    const funcaoIds = Array.from(new Set(registros.map((r) => String(r.funcaoId))))
 
     const [funcionarios, funcoes] = await Promise.all([
       FuncionarioModel.find({ _id: { $in: funcionarioIds.map((id) => new Types.ObjectId(id)) }, ativo: true }).lean(),
