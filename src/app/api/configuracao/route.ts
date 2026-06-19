@@ -3,6 +3,8 @@ import { buscarConfig, salvarConfig } from '@/services/configuracaoService'
 import { criarLog } from '@/services/logService'
 import { extrairAdmin } from '@/lib/adminAuth'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const chave = request.nextUrl.searchParams.get('chave')

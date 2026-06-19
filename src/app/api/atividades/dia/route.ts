@@ -4,6 +4,8 @@ import ExecucaoAtividadeModel from '@/models/ExecucaoAtividade'
 import AtividadeExtraModel from '@/models/AtividadeExtra'
 import AtividadeModel from '@/models/Atividade'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     await connectDB()

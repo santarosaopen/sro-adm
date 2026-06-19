@@ -3,6 +3,8 @@ import { listarAtividades, criarAtividade } from '@/services/atividadeService'
 import { extrairAdmin } from '@/lib/adminAuth'
 import { criarLog } from '@/services/logService'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const funcaoId = request.nextUrl.searchParams.get('funcaoId') || undefined

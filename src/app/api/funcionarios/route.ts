@@ -3,6 +3,8 @@ import { listarFuncionarios, criarFuncionario } from '@/services/funcionarioServ
 import { criarLog } from '@/services/logService'
 import { extrairAdmin } from '@/lib/adminAuth'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const apenasAtivos = request.nextUrl.searchParams.get('ativos') === 'true'

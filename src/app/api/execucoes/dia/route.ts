@@ -3,6 +3,8 @@ import { connectDB } from '@/lib/mongodb'
 import ExecucaoAtividadeModel from '@/models/ExecucaoAtividade'
 import AtividadeModel from '@/models/Atividade'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     await connectDB()

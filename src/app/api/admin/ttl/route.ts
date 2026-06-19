@@ -3,6 +3,8 @@ import { extrairAdmin } from '@/lib/adminAuth'
 import { connectDB } from '@/lib/mongodb'
 import { syncTTLIndexes } from '@/lib/ttl'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   const admin = await extrairAdmin(request)
   if (!admin) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 })

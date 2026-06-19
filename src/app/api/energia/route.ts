@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { buscarLeituras, salvarLeitura } from '@/services/energiaService'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const tipo = request.nextUrl.searchParams.get('tipo') || undefined

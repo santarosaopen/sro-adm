@@ -3,6 +3,8 @@ import { buscarPorId, atualizarFuncionario, deletarFuncionario } from '@/service
 import { criarLog } from '@/services/logService'
 import { extrairAdmin } from '@/lib/adminAuth'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: { id: string } }

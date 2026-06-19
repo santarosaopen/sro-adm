@@ -3,6 +3,8 @@ import { connectDB } from '@/lib/mongodb'
 import AtividadeModel from '@/models/Atividade'
 import ExecucaoAtividadeModel from '@/models/ExecucaoAtividade'
 
+export const dynamic = 'force-dynamic'
+
 const DIAS_SEMANA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
 // Dado o hoje (Date no fuso local) e a periodicidade, diz se a atividade deve ser sugerida

@@ -3,6 +3,8 @@ import { buscarAtividadePorId, atualizarAtividade, deletarAtividade } from '@/se
 import { extrairAdmin } from '@/lib/adminAuth'
 import { criarLog } from '@/services/logService'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params

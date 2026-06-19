@@ -3,6 +3,8 @@ import { verificarSenhaOperacional } from '@/services/adminUserService'
 import { verificarCredencialFuncionario } from '@/services/funcionarioService'
 import { criarLog } from '@/services/logService'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     const { username, senha } = await request.json()

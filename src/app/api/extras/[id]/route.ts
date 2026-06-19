@@ -4,6 +4,8 @@ import { criarLog } from '@/services/logService'
 import { connectDB } from '@/lib/mongodb'
 import AtividadeExtraModel from '@/models/AtividadeExtra'
 
+export const dynamic = 'force-dynamic'
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

@@ -5,6 +5,8 @@ import RegistroPontoModel from '@/models/RegistroPonto'
 import FuncionarioModel from '@/models/Funcionario'
 import FuncaoModel from '@/models/Funcao'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     await connectDB()

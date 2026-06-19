@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { criarAtividadeExtra, listarAtividadesExtras } from '@/services/atividadeExtraService'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const funcionarioId = request.nextUrl.searchParams.get('funcionarioId') || undefined
