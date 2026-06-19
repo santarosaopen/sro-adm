@@ -1,31 +1,69 @@
+import { randomUUID } from 'crypto'
 import { connectDB } from '@/lib/mongodb'
-import RegistroAtividadeModel from '@/models/RegistroAtividade'
+import AtividadeModel from '@/models/Atividade'
+import type { IPeriodicidade } from '@/models/Atividade'
 
-function intervaloDia(data: string) {
-  const inicio = new Date(data)
-  inicio.setHours(0, 0, 0, 0)
-  const fim = new Date(data)
-  fim.setHours(23, 59, 59, 999)
-  return { $gte: inicio, $lte: fim }
-}
-
-export async function buscarRegistro(funcionarioId: string, data: string) {
+export async function listarAtividades(funcaoId?: string) {
   await connectDB()
-  return RegistroAtividadeModel.findOne({
-    funcionarioId,
-    data: intervaloDia(data),
-  }).lean()
+  const filtro = funcaoId ? { funcaoId } : {}
+  return AtividadeModel.find(filtro)
+    .populate('funcaoId', 'nome')
+    .sort({ nome: 1 })
+    .lean()
 }
 
-export async function salvarRegistro(dados: {
-  funcionarioId: string
-  data: string
-  itens: { nome: string; concluida: boolean }[]
+export async function listarAtividadesPorFuncao(funcaoId: string) {
+  await connectDB()
+  return AtividadeModel.find({ funcaoId, ativo: true })
+    .populate('funcaoId', 'nome')
+    .sort({ nome: 1 })
+    .lean()
+}
+
+export async function buscarAtividadePorId(id: string) {
+  await connectDB()
+  return AtividadeModel.findById(id).populate('funcaoId', 'nome').lean()
+}
+
+export async function buscarAtividadePorToken(token: string) {
+  await connectDB()
+  return AtividadeModel.findOne({ qrToken: token, ativo: true })
+    .populate('funcaoId', 'nome')
+    .lean()
+}
+
+export async function criarAtividade(dados: {
+  nome: string
+  funcaoId: string
+  periodicidade?: IPeriodicidade
 }) {
   await connectDB()
-  return RegistroAtividadeModel.findOneAndUpdate(
-    { funcionarioId: dados.funcionarioId, data: intervaloDia(dados.data) },
-    { ...dados, data: new Date(dados.data) },
-    { upsert: true, new: true }
-  )
+  return AtividadeModel.create({
+    nome: dados.nome,
+    funcaoId: dados.funcaoId,
+    qrToken: randomUUID(),
+    ativo: true,
+    periodicidade: dados.periodicidade ?? undefined,
+  })
+}
+
+export async function atualizarAtividade(
+  id: string,
+  dados: Partial<{ nome: string; ativo: boolean; periodicidade: IPeriodicidade | null }>
+) {
+  await connectDB()
+  const update: Record<string, unknown> = {}
+  if (dados.nome !== undefined) update.nome = dados.nome
+  if (dados.ativo !== undefined) update.ativo = dados.ativo
+  if ('periodicidade' in dados) {
+    update.periodicidade = dados.periodicidade ?? undefined
+  }
+  return AtividadeModel.findByIdAndUpdate(id, update, { new: true })
+    .populate('funcaoId', 'nome')
+    .lean()
+}
+
+export async function deletarAtividade(id: string) {
+  await connectDB()
+  return AtividadeModel.findByIdAndDelete(id)
 }

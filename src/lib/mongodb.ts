@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import { syncTTLIndexes } from './ttl'
 
 const MONGODB_URI = process.env.MONGODB_URI!
 
@@ -23,7 +24,13 @@ export async function connectDB(): Promise<typeof mongoose> {
   if (cached.conn) return cached.conn
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI, { bufferCommands: false })
+    cached.promise = mongoose
+      .connect(MONGODB_URI, { bufferCommands: false })
+      .then(async (m) => {
+        // Sincroniza TTL indexes com os valores configurados (não bloqueia)
+        syncTTLIndexes(m).catch((e) => console.error('[TTL] sync failed:', e))
+        return m
+      })
   }
 
   cached.conn = await cached.promise

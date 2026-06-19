@@ -3,6 +3,7 @@ import { Types } from 'mongoose'
 import { connectDB } from '@/lib/mongodb'
 import RegistroPontoModel from '@/models/RegistroPonto'
 import FuncionarioModel from '@/models/Funcionario'
+import FuncaoModel from '@/models/Funcao'
 
 export async function GET() {
   try {
@@ -18,46 +19,45 @@ export async function GET() {
     const hoje = new Date(Date.UTC(ano, mes, dia, 3, 0, 0, 0))
     const amanha = new Date(Date.UTC(ano, mes, dia + 1, 3, 0, 0, 0))
 
-    // Todos os registros de hoje, do mais recente para o mais antigo
+    // Todos os registros de hoje — cada um já é uma presença (sem tipo)
     const registros = await RegistroPontoModel.find({
       timestamp: { $gte: hoje, $lt: amanha },
     })
       .sort({ timestamp: -1 })
       .lean()
 
-    // Última ocorrência de cada funcionário
-    const ultimoPorFuncionario = new Map<string, typeof registros[0]>()
+    if (!registros.length) return NextResponse.json([])
+
+    const funcionarioIds = [...new Set(registros.map((r) => String(r.funcionarioId)))]
+    const funcaoIds = [...new Set(registros.map((r) => String(r.funcaoId)))]
+
+    const [funcionarios, funcoes] = await Promise.all([
+      FuncionarioModel.find({ _id: { $in: funcionarioIds.map((id) => new Types.ObjectId(id)) }, ativo: true }).lean(),
+      FuncaoModel.find({ _id: { $in: funcaoIds.map((id) => new Types.ObjectId(id)) } }).lean(),
+    ])
+
+    const mapaFuncionarios = new Map(funcionarios.map((f) => [String(f._id), f]))
+    const mapaFuncoes = new Map(funcoes.map((f) => [String(f._id), f]))
+
+    // Um registro por funcionário (o mais recente do dia)
+    const vistos = new Set<string>()
+    const resultado = []
     for (const r of registros) {
-      const id = String(r.funcionarioId)
-      if (!ultimoPorFuncionario.has(id)) ultimoPorFuncionario.set(id, r)
-    }
+      const fid = String(r.funcionarioId)
+      if (vistos.has(fid)) continue
+      vistos.add(fid)
 
-    // Apenas quem tem último registro = entrada
-    const presentes = Array.from(ultimoPorFuncionario.entries())
-      .filter(([, r]) => r.tipo === 'entrada')
-      .map(([id, r]) => ({ id, foto: r.foto as string, timestamp: r.timestamp }))
+      const funcionario = mapaFuncionarios.get(fid)
+      const funcao = mapaFuncoes.get(String(r.funcaoId))
+      if (!funcionario || !funcao) continue
 
-    if (!presentes.length) return NextResponse.json([])
-
-    const ids = presentes.map((p) => new Types.ObjectId(p.id))
-    const funcionarios = await FuncionarioModel.find({
-      _id: { $in: ids },
-      ativo: true,
-    }).lean()
-
-    const mapa = new Map(funcionarios.map((f) => [String(f._id), f]))
-
-    const resultado = presentes
-      .map(({ id, foto, timestamp }) => {
-        const f = mapa.get(id)
-        if (!f) return null
-        return {
-          funcionario: { _id: String(f._id), nome: f.nome, cargo: f.cargo },
-          foto,
-          timestamp,
-        }
+      resultado.push({
+        funcionario: { _id: String(funcionario._id), nome: funcionario.nome },
+        funcao: { _id: String(funcao._id), nome: funcao.nome },
+        foto: r.foto as string,
+        timestamp: r.timestamp,
       })
-      .filter(Boolean)
+    }
 
     return NextResponse.json(resultado)
   } catch (err) {

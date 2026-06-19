@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { buscarRegistros, salvarRegistro } from '@/services/pontoService'
+import { buscarRegistros, salvarRegistro, verificarPresencaHoje } from '@/services/pontoService'
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,6 +14,16 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const corpo = await request.json()
+
+    if (!corpo.funcionarioId || !corpo.funcaoId || !corpo.foto || !corpo.timestamp) {
+      return NextResponse.json({ erro: 'Campos obrigatórios: funcionarioId, funcaoId, foto, timestamp' }, { status: 400 })
+    }
+
+    const jaPresente = await verificarPresencaHoje(corpo.funcionarioId, corpo.funcaoId)
+    if (jaPresente) {
+      return NextResponse.json({ erro: 'Presença já registrada nesta função hoje.' }, { status: 409 })
+    }
+
     const registro = await salvarRegistro(corpo)
     return NextResponse.json(registro, { status: 201 })
   } catch {

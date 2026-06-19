@@ -25,8 +25,7 @@ export default function ListaFuncionarios({ funcionarios, onEditar, onDeletar, o
         <thead className="bg-gray-50">
           <tr>
             <th className="px-4 py-3 text-left font-medium text-gray-700">Nome</th>
-            <th className="px-4 py-3 text-left font-medium text-gray-700">Cargo</th>
-            <th className="px-4 py-3 text-center font-medium text-gray-700">Atividades</th>
+            <th className="px-4 py-3 text-left font-medium text-gray-700">Usuário</th>
             <th className="px-4 py-3 text-center font-medium text-gray-700">Status</th>
             <th className="px-4 py-3 text-right font-medium text-gray-700">Ações</th>
           </tr>
@@ -35,8 +34,13 @@ export default function ListaFuncionarios({ funcionarios, onEditar, onDeletar, o
           {funcionarios.map((f) => (
             <tr key={f._id} className="hover:bg-gray-50">
               <td className="px-4 py-3 font-medium text-gray-900">{f.nome}</td>
-              <td className="px-4 py-3 text-gray-600">{f.cargo}</td>
-              <td className="px-4 py-3 text-center text-gray-600">{f.atividades.length}</td>
+              <td className="px-4 py-3 text-gray-500 text-sm">
+                {f.username ? (
+                  <span className="font-mono">{f.username}</span>
+                ) : (
+                  <span className="text-gray-300">—</span>
+                )}
+              </td>
               <td className="px-4 py-3 text-center">
                 <button
                   onClick={() => onToggleAtivo(f)}

@@ -48,7 +48,7 @@ export default function SeletorFuncionario({ value, onChange }: Props) {
         <option value="">Selecione um funcionário...</option>
         {funcionarios.map((f) => (
           <option key={f._id} value={f._id}>
-            {f.nome} — {f.cargo}
+            {f.nome}
           </option>
         ))}
       </select>

@@ -1,6 +1,6 @@
 # SRO — Sistema de Registro Operacional
 
-Sistema web completo para gestão operacional de consumo de recursos e controle de funcionários. Desenvolvido com Next.js 14, MongoDB e Tailwind CSS, com deploy gratuito no Vercel.
+Sistema web completo para gestão operacional de consumo de recursos, controle de presenças e registro de atividades com evidências fotográficas. Desenvolvido com Next.js 14, MongoDB e Tailwind CSS.
 
 ---
 
@@ -8,11 +8,11 @@ Sistema web completo para gestão operacional de consumo de recursos e controle 
 
 | Módulo | Descrição |
 |--------|-----------|
-| **Água** | Registro de leituras diárias e da companhia, gráfico de consumo, estatísticas, cota de consumo e exportação em PDF |
-| **Energia** | Registro de leituras diárias e da companhia, gráfico de consumo, estatísticas e calculadora de custo estimado |
-| **Ponto** | Registro de entrada/saída com foto via webcam, verificação por GPS e visualização de horários |
-| **Atividades** | Checklist de atividades diárias por funcionário |
-| **Administrativo** | Gestão de funcionários, usuários admin, medidas, pontos, configurações e logs de auditoria |
+| **Água** | Registro de leituras diárias e da companhia, gráfico de consumo, estatísticas, cota e exportação em PDF |
+| **Energia** | Registro de leituras, gráfico, estatísticas e calculadora de custo |
+| **Horários** | Registro de presença com foto, validação GPS, histórico e visualização de quem está presente |
+| **Atividades** | Registro via QR Code com foto + observação, atividades extras, sugestão de periodicidade e histórico do dia |
+| **Administrativo** | Gestão completa de funcionários, funções, atividades, execuções, extras, presenças, medidas, usuários, logs e configurações |
 
 ---
 
@@ -20,11 +20,13 @@ Sistema web completo para gestão operacional de consumo de recursos e controle 
 
 - **Framework**: Next.js 14 (App Router) + TypeScript
 - **Estilização**: Tailwind CSS
-- **Banco de dados**: MongoDB via Mongoose
-- **Autenticação**: JWT em cookie `httpOnly` (biblioteca `jose`)
+- **Banco de dados**: MongoDB via Mongoose (TTL automático configurável)
+- **Autenticação admin**: JWT em cookie `httpOnly` (biblioteca `jose`)
+- **Autenticação operacional**: credenciais de funcionário ou senha operacional de admin
+- **QR Code**: `qrcode` (geração client-side) + `jsqr` (leitura via câmera)
+- **Câmera**: API nativa `getUserMedia` + `canvas` (sem dependência de lib de webcam para fotos)
 - **Gráficos**: Recharts
 - **PDF**: jsPDF + jspdf-autotable
-- **Webcam**: react-webcam (import dinâmico com `ssr: false`)
 - **Deploy**: Vercel (Free Tier)
 
 ---
@@ -61,21 +63,14 @@ Acesse em [http://localhost:3000](http://localhost:3000).
 
 ## Variáveis de Ambiente
 
-Crie o arquivo `.env.local` na raiz do projeto:
-
 ```env
-# String de conexão do MongoDB Atlas
 MONGODB_URI=mongodb+srv://usuario:senha@cluster.mongodb.net/SRO?retryWrites=true&w=majority
-
-# Credenciais do administrador padrão
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=admin123
-
-# Segredo para assinatura dos tokens JWT (use uma string longa e aleatória)
 JWT_SECRET=troque-por-uma-string-aleatoria-segura-aqui
 ```
 
-> **Atenção**: nunca suba o `.env.local` para o repositório. Ele já está listado no `.gitignore`.
+> **Atenção**: nunca suba o `.env.local` para o repositório.
 
 ---
 
@@ -90,164 +85,78 @@ JWT_SECRET=troque-por-uma-string-aleatoria-segura-aqui
 
 ---
 
-## Estrutura de Pastas
-
-```
-SRO/
-├── .env.example
-├── next.config.ts
-├── tailwind.config.ts
-└── src/
-    ├── middleware.ts              ← Protege /admin/* via JWT
-    ├── types/index.ts             ← Interfaces TypeScript compartilhadas
-    ├── context/
-    │   └── ModoContext.tsx        ← Contexto global: modo operacional/visualização
-    ├── lib/
-    │   ├── mongodb.ts             ← Singleton de conexão para serverless
-    │   ├── auth.ts                ← Criação e verificação de JWT
-    │   ├── adminAuth.ts           ← Helpers de autenticação admin
-    │   ├── gps.ts                 ← Cálculo de distância geográfica (Haversine)
-    │   ├── formatters.ts          ← Formatação de datas, números e moeda (pt-BR)
-    │   └── graficos.ts            ← Agrupamento de leituras por semana/mês/ano
-    ├── models/
-    │   ├── LeituraAgua.ts
-    │   ├── LeituraEnergia.ts
-    │   ├── Funcionario.ts
-    │   ├── RegistroPonto.ts
-    │   ├── RegistroAtividade.ts
-    │   ├── Configuracao.ts
-    │   ├── AdminUser.ts
-    │   └── LogSistema.ts
-    ├── services/
-    │   ├── aguaService.ts
-    │   ├── energiaService.ts
-    │   ├── funcionarioService.ts
-    │   ├── pontoService.ts
-    │   ├── atividadeService.ts
-    │   ├── configuracaoService.ts
-    │   ├── adminUserService.ts
-    │   └── logService.ts
-    ├── app/
-    │   ├── layout.tsx             ← Layout raiz com Navbar
-    │   ├── page.tsx               ← Home com cards de navegação
-    │   ├── agua/page.tsx
-    │   ├── energia/page.tsx
-    │   ├── ponto/page.tsx
-    │   ├── atividades/page.tsx
-    │   ├── admin/
-    │   │   ├── page.tsx           ← Painel administrativo (protegido)
-    │   │   └── login/page.tsx
-    │   └── api/
-    │       ├── agua/              ← GET, POST / GET, PUT, DELETE por id
-    │       ├── energia/           ← GET, POST / GET, PUT, DELETE por id
-    │       ├── ponto/             ← GET, POST / DELETE por id / GET presença
-    │       ├── atividades/        ← GET, POST
-    │       ├── funcionarios/      ← GET, POST / GET, PUT, DELETE por id
-    │       ├── configuracao/      ← GET, POST (chave/valor)
-    │       ├── logs/              ← GET (últimas 200 entradas)
-    │       ├── admin/
-    │       │   ├── login/         ← POST (gera cookie JWT)
-    │       │   ├── logout/        ← POST (remove cookie)
-    │       │   └── usuarios/      ← CRUD de usuários admin
-    │       └── operacional/
-    │           ├── status/        ← GET (verifica se modo operacional está ativo)
-    │           ├── senha/         ← POST (define senha do modo operacional)
-    │           └── verificar/     ← POST (valida senha e libera o modo)
-    └── components/
-        ├── ui/
-        │   ├── Button.tsx
-        │   ├── Card.tsx
-        │   └── ModalSenhaModo.tsx
-        ├── navigation/
-        │   ├── Navbar.tsx
-        │   └── NavigationProgress.tsx
-        ├── agua/
-        │   ├── FormMedicao.tsx
-        │   ├── GraficoConsumo.tsx
-        │   ├── EstatisticasConsumo.tsx
-        │   ├── ConsumoCotas.tsx
-        │   ├── FormCota.tsx
-        │   └── BotaoExportarPDF.tsx
-        ├── energia/
-        │   ├── FormMedicao.tsx
-        │   ├── GraficoConsumo.tsx
-        │   ├── EstatisticasConsumo.tsx
-        │   └── CalculadoraEnergia.tsx
-        ├── ponto/
-        │   ├── RelogioAtual.tsx
-        │   ├── SeletorFuncionario.tsx
-        │   ├── CapturaFoto.tsx
-        │   ├── TabelaHorariosPonto.tsx
-        │   └── PresencaAtual.tsx
-        ├── atividades/
-        │   ├── SeletorFuncionario.tsx
-        │   └── ChecklistAtividades.tsx
-        └── admin/
-            ├── FormFuncionario.tsx
-            ├── ListaFuncionarios.tsx
-            ├── TabelaPontos.tsx
-            ├── TabelaLeituras.tsx
-            ├── TabelaLogs.tsx
-            ├── FormAdminUser.tsx
-            ├── FormNomeEmpresa.tsx
-            ├── FormSenhaOperacional.tsx
-            └── FormGPS.tsx
-```
-
----
-
 ## Modelos de Dados (MongoDB)
+
+### Funcao
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `nome` | String | Nome da função/cargo |
+| `ativo` | Boolean | Se aparece nas seleções |
+
+### Funcionario
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `nome` | String | Nome completo |
+| `username` | String | Login para modo operacional |
+| `senhaHash` | String | SHA-256 da senha (nunca exposto na API) |
+| `ativo` | Boolean | Se aparece nas seleções |
+
+### Atividade
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `nome` | String | Descrição da atividade |
+| `funcaoId` | ObjectId | Função à qual pertence |
+| `qrToken` | String | UUID único para o QR Code |
+| `ativo` | Boolean | Se está ativa |
+| `periodicidade` | Object | `{ tipo: 'intervalo'\|'diasSemana', intervalo?, diasSemana? }` |
+
+### ExecucaoAtividade
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `atividadeId` | ObjectId | Atividade executada |
+| `funcionarioId` | ObjectId | Executor |
+| `nomeExecutor` | String | Nome gravado no momento (persiste após deletar funcionário) |
+| `fotoExecutor` | String | Foto da presença do dia (persiste após deletar funcionário) |
+| `fotos` | String[] | Fotos da execução (base64) |
+| `observacao` | String | Observação opcional |
+| `timestamp` | Date | Data e hora da execução |
+
+### AtividadeExtra
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `funcionarioId` | ObjectId | Executor |
+| `descricao` | String | Descrição da atividade extra |
+| `observacao` | String | Observação opcional |
+| `fotos` | String[] | Fotos da execução |
+| `timestamp` | Date | Data e hora |
+
+### RegistroPonto
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `funcionarioId` | ObjectId | Funcionário |
+| `funcaoId` | ObjectId | Função exercida no dia |
+| `foto` | String | Foto do registro (base64) |
+| `timestamp` | Date | Data e hora da presença |
 
 ### LeituraAgua / LeituraEnergia
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
 | `valor` | Number | Valor acumulado do medidor |
 | `data` | Date | Data da leitura |
-| `tipo` | `'diaria' \| 'mensal'` | Diária (própria) ou da companhia |
+| `tipo` | `'diaria'\|'mensal'` | Diária (própria) ou da companhia |
 
-### Funcionario
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `nome` | String | Nome completo |
-| `cargo` | String | Cargo/função |
-| `ativo` | Boolean | Se aparece nas seleções |
-| `atividades` | String[] | Lista de atividades do checklist |
+### Configuracao — Chaves utilizadas
 
-### RegistroPonto
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `funcionarioId` | ObjectId | Referência ao funcionário |
-| `tipo` | `'entrada' \| 'saida'` | Tipo do registro |
-| `foto` | String | Imagem JPEG 320×240 em base64 (~15 KB) |
-| `timestamp` | Date | Data e hora do registro |
-
-### RegistroAtividade
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `funcionarioId` | ObjectId | Referência ao funcionário |
-| `data` | Date | Data do registro |
-| `itens` | `{nome, concluida}[]` | Checklist de atividades |
-
-### Configuracao
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `chave` | String | Identificador único |
-| `valor` | String | Valor armazenado |
-
-**Chaves utilizadas:**
-
-| Chave | Descrição |
-|-------|-----------|
-| `cota_agua` | Cota de consumo do período (m³) |
-| `nome_empresa_agua` | Nome da companhia de água (ex: SABESP) |
-| `nome_empresa_energia` | Nome da companhia de energia (ex: COPEL) |
-| `gps_latitude` | Latitude do ponto de referência para registro de ponto |
-| `gps_longitude` | Longitude do ponto de referência |
-| `gps_raio` | Raio de tolerância em metros |
-| `senha_operacional` | Hash da senha do modo operacional |
-
-### AdminUser / LogSistema
-Gerenciamento de usuários administrativos e log de auditoria de ações no sistema.
+| Chave | Padrão | Descrição |
+|-------|--------|-----------|
+| `cota_agua` | — | Cota diária de consumo de água (m³) |
+| `nome_empresa_agua` | — | Nome da companhia de água para o gráfico |
+| `nome_empresa_energia` | — | Nome da companhia de energia |
+| `gps_latitude` | — | Latitude do ponto de referência para presença |
+| `gps_longitude` | — | Longitude do ponto de referência |
+| `gps_raio_metros` | 100 | Raio de tolerância em metros |
+| `retencao_presencas_dias` | 30 | Dias de retenção dos registros de presença (TTL) |
+| `retencao_execucoes_dias` | 90 | Dias de retenção das execuções de atividades (TTL) |
 
 ---
 
@@ -256,167 +165,210 @@ Gerenciamento de usuários administrativos e log de auditoria de ações no sist
 ### Água
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
-| `GET` | `/api/agua` | Lista todas as leituras |
-| `POST` | `/api/agua` | Registra nova leitura |
+| `GET` | `/api/agua` | Lista leituras |
+| `POST` | `/api/agua` | Registra leitura |
 | `PUT` | `/api/agua/[id]` | Atualiza leitura |
 | `DELETE` | `/api/agua/[id]` | Remove leitura |
 
 ### Energia
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
-| `GET` | `/api/energia` | Lista todas as leituras |
-| `POST` | `/api/energia` | Registra nova leitura |
+| `GET` | `/api/energia` | Lista leituras |
+| `POST` | `/api/energia` | Registra leitura |
 | `PUT` | `/api/energia/[id]` | Atualiza leitura |
 | `DELETE` | `/api/energia/[id]` | Remove leitura |
 
-### Ponto
+### Presenças
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
-| `GET` | `/api/ponto` | Lista registros (filtro por `funcionarioId`) |
-| `POST` | `/api/ponto` | Registra entrada ou saída com foto |
+| `GET` | `/api/ponto` | Lista registros (`?funcionarioId=`) |
+| `POST` | `/api/ponto` | Registra presença (1 por funcionário+função por dia) |
 | `DELETE` | `/api/ponto/[id]` | Remove registro |
-| `GET` | `/api/ponto/presenca` | Retorna quem está presente no momento |
+| `GET` | `/api/ponto/presenca` | Quem está presente hoje (BRT) |
+| `GET` | `/api/ponto/verificar` | Verifica se já registrou (`?funcionarioId=&funcaoId=`) |
 
 ### Funcionários
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
-| `GET` | `/api/funcionarios` | Lista todos os funcionários |
+| `GET` | `/api/funcionarios` | Lista (`?ativos=true`) |
 | `POST` | `/api/funcionarios` | Cria funcionário |
-| `PUT` | `/api/funcionarios/[id]` | Atualiza dados |
-| `DELETE` | `/api/funcionarios/[id]` | Remove funcionário |
+| `PUT` | `/api/funcionarios/[id]` | Atualiza (inclui `username` e `senha`) |
+| `DELETE` | `/api/funcionarios/[id]` | Remove apenas o cadastro (demais registros preservados) |
 
-### Atividades
+### Funções
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
-| `GET` | `/api/atividades` | Lista registros (filtro por `funcionarioId` e `data`) |
-| `POST` | `/api/atividades` | Salva checklist do dia |
+| `GET` | `/api/funcoes` | Lista (`?ativas=true`) |
+| `POST` | `/api/funcoes` | Cria função |
+| `GET` | `/api/funcoes/[id]` | Busca por ID |
+| `PUT` | `/api/funcoes/[id]` | Atualiza |
+| `DELETE` | `/api/funcoes/[id]` | Remove |
+
+### Atividades (entidades com QR)
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `GET` | `/api/atividades` | Lista (`?funcaoId=`) |
+| `POST` | `/api/atividades` | Cria atividade (gera `qrToken`) |
+| `GET` | `/api/atividades/[id]` | Busca por ID |
+| `PUT` | `/api/atividades/[id]` | Atualiza |
+| `DELETE` | `/api/atividades/[id]` | Remove |
+| `GET` | `/api/atividades/scan` | Resolve token do QR (`?t=<token>`) |
+| `GET` | `/api/atividades/dia` | Execuções QR + extras do dia mesclados |
+| `GET` | `/api/atividades/sugestoes` | Atividades pendentes por periodicidade (`?funcaoId=&funcionarioId=`) |
+
+### Execuções de Atividades
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `GET` | `/api/execucoes` | Lista (`?atividadeId=&funcionarioId=`) |
+| `POST` | `/api/execucoes` | Registra execução com fotos |
+| `PUT` | `/api/execucoes/[id]` | Atualiza fotos e observação |
+| `DELETE` | `/api/execucoes/[id]` | Remove execução |
+| `GET` | `/api/execucoes/dia` | Execuções de um dia (`?data=&funcaoId=`) |
+| `GET` | `/api/execucoes/periodo` | Execuções em intervalo (`?inicio=&fim=&funcaoId=&funcionarioId=`) |
+| `GET` | `/api/execucoes/verificar` | Verifica se já executou hoje (`?atividadeId=&funcionarioId=`) |
+
+### Atividades Extras
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `GET` | `/api/extras` | Lista (`?periodo=dia\|semana\|mes&funcionarioId=`) |
+| `POST` | `/api/extras` | Registra atividade extra |
+| `DELETE` | `/api/extras/[id]` | Remove atividade extra |
 
 ### Configuração
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
-| `GET` | `/api/configuracao?chave=<chave>` | Busca valor de uma configuração |
-| `POST` | `/api/configuracao` | Salva ou atualiza configuração |
+| `GET` | `/api/configuracao?chave=<chave>` | Lê valor |
+| `POST` | `/api/configuracao` | Salva ou atualiza |
 
-### Admin — Autenticação
+### Admin — Auth
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
 | `POST` | `/api/admin/login` | Autentica e define cookie JWT (8h) |
-| `POST` | `/api/admin/logout` | Remove o cookie JWT |
-
-### Admin — Usuários
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| `GET` | `/api/admin/usuarios` | Lista usuários admin |
-| `POST` | `/api/admin/usuarios` | Cria usuário admin |
-| `PUT` | `/api/admin/usuarios/[id]` | Atualiza usuário |
-| `DELETE` | `/api/admin/usuarios/[id]` | Remove usuário |
+| `POST` | `/api/admin/logout` | Remove o cookie |
+| `GET/POST/PUT/DELETE` | `/api/admin/usuarios` | CRUD de usuários admin |
+| `POST` | `/api/admin/ttl` | Sincroniza índices TTL com configurações atuais |
 
 ### Modo Operacional
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
-| `GET` | `/api/operacional/status` | Verifica se o modo está configurado |
-| `POST` | `/api/operacional/senha` | Define a senha do modo operacional |
-| `POST` | `/api/operacional/verificar` | Valida a senha e libera o modo |
+| `POST` | `/api/operacional/verificar` | Valida credenciais (funcionário ou admin com senha operacional) |
 
 ### Logs
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
-| `GET` | `/api/logs` | Retorna as últimas 200 entradas de auditoria |
+| `GET` | `/api/logs` | Últimas 200 entradas de auditoria |
 
 ---
 
 ## Funcionalidades por Módulo
 
 ### Água e Energia
-- Registro de leituras **diárias** (próprias) e **mensais** (da companhia)
-- Leituras são **acumulativas** — o gráfico exibe o **delta** entre leituras consecutivas
-- A leitura da companhia serve como **baseline** para o primeiro delta diário
-- **Gráfico de consumo** com navegação por Semana / Mês / Ano e setas de período anterior/próximo
-- **Linhas de referência** no gráfico marcando as datas das leituras da companhia (nome configurável no admin)
-- **Estatísticas**: maior consumo, menor consumo e média diária no período entre as duas últimas leituras da companhia
-- **Água**: barra de progresso de consumo vs. cota do período; linha de cota no gráfico
-- **Água**: exportação das leituras em PDF (jsPDF + autotable)
-- **Energia**: calculadora de custo estimado (kWh × tarifa)
+- Leituras **diárias** e **mensais** (companhia)
+- Gráfico com navegação por Semana / Mês / Ano
+- Linhas de referência das leituras da companhia
+- Estatísticas de máximo, mínimo e média
+- **Água**: barra de progresso vs. cota e exportação em PDF
+- **Energia**: calculadora de custo estimado
 
-### Registro de Ponto
-- Relógio em tempo real
-- Seleção de funcionário
-- Captura de foto via webcam (JPEG 320×240, ~15 KB em base64)
-- Validação opcional de GPS — bloqueia registro se o funcionário estiver fora do raio configurado
-- Exibição de quem está presente no momento
-- Histórico de registros do dia com horários e fotos
+### Horários (Presença)
+- Um registro por funcionário **por função** por dia (mesma pessoa pode registrar em funções diferentes)
+- Validação client-side antes de mostrar a câmera — bloqueia se já registrou na mesma função hoje
+- Captura de foto via câmera do dispositivo com seleção automática entre câmeras disponíveis
+- Validação de GPS (opcional) — bloqueia fora do raio configurado
+- **Registro por terceiro**: funcionário logado pode registrar presença de outro após validar as credenciais desse outro funcionário
+- Visualização em tempo real de quem está presente
 
 ### Atividades
-- Checklist diário por funcionário
-- Atividades configuradas por funcionário no painel admin
-- Progresso visual de conclusão
+**Modo Operacional:**
+- Sugestões de periodicidade — lista atividades pendentes baseado no intervalo ou dias da semana configurados
+- Escanear QR Code via câmera para registrar execução
+- Ao escanear: verifica se já foi executada hoje e permite editar o registro existente em vez de criar um novo
+- Registro com 1 ou mais fotos + observação opcional
+- Atividades Extras: descrição livre + fotos + observação
+- Lista das atividades executadas no dia (QR + extras)
+- Relógio circular de 10s na tela de sucesso antes de redirecionar para o scanner
 
-### Painel Administrativo (protegido por JWT)
-**Abas disponíveis:**
-- **Funcionários**: CRUD completo com lista de atividades do checklist
-- **Registros de Horário**: filtro por funcionário e período, visualização com foto, exclusão
-- **Medidas**: tabela editável de todas as leituras de água e energia
-- **Usuários**: CRUD de usuários administradores
-- **Logs**: auditoria das últimas 200 ações no sistema
-- **Configurações**:
-  - Cota de consumo de água (m³)
-  - Nome da companhia de água (aparece nas marcações do gráfico)
-  - Nome da companhia de energia (aparece nas marcações do gráfico)
-  - Localização GPS de referência para registro de ponto
-  - Senha do modo operacional
+**Modo Visualização:**
+- Lista unificada de execuções QR + extras do dia com filtro de dia e função
+- Badge de cor por função, badge roxo para extras
+- Fotos clicáveis com lightbox e navegação por setas (←/→ ou teclado)
 
-### Modo Operacional
+### Painel Administrativo
+**Estrutura:** sidebar fixa com navegação entre módulos sem precisar do botão voltar do browser.
+
+**Módulos disponíveis:**
+- **Funcionários**: CRUD + credenciais de login operacional (username + senha)
+- **Funções**: CRUD de funções/cargos
+- **Atividades**: CRUD com geração de QR Code, periodicidade configurável, botão "Ver execuções" para histórico completo, impressão de QR Codes em PDF (máx. 9 por página, grid A4)
+- **Execuções de Atividades**: histórico filtrado por dia/semana/mês/range + função, com foto do executor, observações e exclusão
+- **Extras**: histórico de atividades extras com filtros completos, observações e exclusão
+- **Presenças**: registros por funcionário e período com exclusão
+- **Medidas**: tabela editável de leituras de água e energia
+- **Usuários**: CRUD de administradores
+- **Logs**: auditoria das últimas 200 ações
+- **Configurações**: cotas, nomes de companhia, GPS, retenção de dados (TTL automático configurável pelo admin)
+
+### QR Codes
+- Gerado automaticamente ao criar cada atividade (UUID único)
+- Exibido no admin com opção de imprimir
+- Impressão em lote: selecionar atividades específicas ou todas → PDF A4 com grid 3×3, borda preta, nome e função
+- Escaneado via câmera no modo operacional (detecção em tempo real com `jsqr`)
+
+### Periodicidade de Atividades
+Configurada por atividade no admin com dois modos:
+- **Intervalo**: a cada N dias (ex: a cada 2 dias)
+- **Dias da semana**: seg, qua, sex — sugere no próximo dia configurado após a última execução
+
+As sugestões aparecem no modo operacional quando o funcionário tem presença registrada hoje.
+
+### TTL Automático
+Registros são apagados automaticamente pelo MongoDB após o período configurado:
+- **Presenças**: padrão 30 dias
+- **Execuções de atividades**: padrão 90 dias
+
+Os valores são configuráveis no admin (Configurações → Retenção de Registros). Ao salvar, os índices TTL do MongoDB são atualizados via `collMod` sem downtime.
+
+---
+
+## Modo Operacional
+
 O sistema possui dois modos de uso:
 
 | Modo | Acesso | Permissões |
-|------|--------|-----------|
-| **Visualização** | Sem senha | Apenas leitura — gráficos, estatísticas e histórico |
-| **Operacional** | Senha configurada no admin | Registro de leituras, ponto e atividades |
+|------|--------|------------|
+| **Visualização** | Sem senha | Apenas leitura |
+| **Operacional** | Credenciais de funcionário ou senha operacional de admin | Registros completos |
 
-A senha do modo operacional é independente da senha administrativa.
+- Funcionário acessa com `username` + `senha` definidos pelo admin
+- Admin com senha operacional também pode acessar
+- O sistema identifica o tipo de usuário e adapta a interface (ex: pré-seleciona o funcionário no registro de presença)
+- Botão "Sair" destacado na navbar quando operacional; também funciona clicando no badge de modo
 
 ---
 
 ## Autenticação Administrativa
 
-- Rota protegida: `/admin/*`
-- O `middleware.ts` intercepta todas as requisições para `/admin/*` (exceto `/admin/login`)
-- Valida o cookie `admin-token` usando `jwtVerify` da biblioteca `jose`
+- Rota protegida: `/admin/*` (exceto `/admin/login`)
+- `middleware.ts` intercepta e verifica o cookie `admin-token` via `jose`
 - Token com validade de **8 horas**
-- Múltiplos usuários admin com controle de ativo/inativo
-
----
-
-## Deploy no Vercel
-
-1. Faça push do repositório para o GitHub
-2. Acesse [vercel.com](https://vercel.com) e importe o repositório
-3. Configure as variáveis de ambiente no painel do Vercel:
-   - `MONGODB_URI`
-   - `ADMIN_USERNAME`
-   - `ADMIN_PASSWORD`
-   - `JWT_SECRET`
-4. Deploy automático a cada push na branch `main`
-
-> O projeto usa exclusivamente Free Tiers (Vercel + MongoDB Atlas) — **sem custo**.
+- Página de login não exibe a sidebar administrativa
 
 ---
 
 ## Detalhes Técnicos
 
-### Leituras acumulativas e cálculo de delta
-Os medidores de água e energia registram valores crescentes. O consumo real é calculado como a diferença entre leituras consecutivas (`leitura[i] - leitura[i-1]`). Leituras com valor negativo (ex: troca de medidor) são normalizadas para `0`.
+### Fuso horário (BRT / UTC-3)
+Todo cálculo de "hoje" usa UTC-3: meia-noite BRT = 03:00 UTC. Registros são filtrados por `timestamp >= UTC(dia, mês, ano, 3h)` e `< UTC(dia+1, mês, ano, 3h)`.
 
-### Fuso horário (UTC)
-Datas armazenadas como `UTC midnight` são exibidas corretamente em fuso BRT (UTC-3) via extração de componentes UTC (`getUTCFullYear`, `getUTCMonth`, `getUTCDate`) antes de criar uma data local.
-
-### Semana iniciando na segunda-feira
-A função `inicioSemana(offset)` calcula a segunda-feira da semana atual/offset:
-- Domingo (`getDay() === 0`) → recua 6 dias
-- Demais dias → recua `dia - 1` dias
-
-### Foto no ponto
-Capturada em JPEG 320×240 com qualidade 60%, resultando em ~15 KB por registro em base64 — dentro do limite de documento do MongoDB (16 MB).
+### Foto no ponto e execuções
+- Capturada via `getUserMedia` + `canvas.toDataURL('image/jpeg', 0.85)`
+- A foto de presença é copiada para `ExecucaoAtividade.fotoExecutor` no momento do registro — persiste mesmo após o funcionário ser deletado
 
 ### GPS
-Distância calculada pela fórmula de Haversine. O registro de ponto é bloqueado se o funcionário estiver além do raio configurado (em metros).
+Distância calculada pela fórmula de Haversine. O registro é bloqueado se além do raio configurado.
+
+### Deleção segura de funcionários
+`DELETE /api/funcionarios/[id]` apaga apenas o documento do `Funcionario`. Registros de presença, execuções, atividades extras e logs mantêm o `funcionarioId` como referência (pode ser dangling) mas preservam `nomeExecutor` e `fotoExecutor` para exibição histórica.
+
+### Leituras acumulativas
+O gráfico exibe o **delta** entre leituras consecutivas. Valores negativos (troca de medidor) são normalizados para `0`.

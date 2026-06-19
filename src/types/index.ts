@@ -15,34 +15,65 @@ export interface LeituraEnergia {
   createdAt?: string
 }
 
+export interface Funcao {
+  _id?: string
+  nome: string
+  ativo: boolean
+  createdAt?: string
+}
+
+export interface Periodicidade {
+  tipo: 'intervalo' | 'diasSemana'
+  intervalo?: number
+  diasSemana?: number[]
+}
+
+export interface Atividade {
+  _id?: string
+  nome: string
+  funcaoId: string | { _id: string; nome: string }
+  qrToken: string
+  ativo: boolean
+  periodicidade?: Periodicidade
+  createdAt?: string
+}
+
+export interface ExecucaoAtividade {
+  _id?: string
+  atividadeId: string | { _id: string; nome: string; funcaoId: { nome: string } }
+  funcionarioId: string | { _id: string; nome: string }
+  nomeExecutor?: string
+  fotoExecutor?: string
+  fotos: string[]
+  observacao?: string
+  timestamp: string
+  createdAt?: string
+}
+
+export interface AtividadeExtra {
+  _id?: string
+  funcionarioId: string | { _id: string; nome: string }
+  descricao: string
+  observacao?: string
+  fotos: string[]
+  timestamp: string
+  createdAt?: string
+}
+
 export interface Funcionario {
   _id?: string
   nome: string
-  cargo: string
+  username?: string
   ativo: boolean
-  atividades: string[]
   createdAt?: string
 }
 
 export interface RegistroPonto {
   _id?: string
-  funcionarioId: string | { _id: string; nome: string; cargo: string }
-  tipo: 'entrada' | 'saida'
+  funcionarioId: string | { _id: string; nome: string }
+  funcaoId: string | { _id: string; nome: string }
   foto: string
   timestamp: string
-  createdAt?: string
-}
-
-export interface ItemAtividade {
-  nome: string
-  concluida: boolean
-}
-
-export interface RegistroAtividade {
-  _id?: string
-  funcionarioId: string
-  data: string
-  itens: ItemAtividade[]
   createdAt?: string
 }
 

@@ -4,7 +4,8 @@ import { useEffect, useState, useCallback, useImperativeHandle, forwardRef } fro
 import { formatarHora } from '@/lib/formatters'
 
 interface Presente {
-  funcionario: { _id: string; nome: string; cargo: string }
+  funcionario: { _id: string; nome: string }
+  funcao: { _id: string; nome: string }
   foto: string
   timestamp: string
 }
@@ -95,7 +96,7 @@ const PresencaAtual = forwardRef<PresencaAtualRef>((_, ref) => {
         <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-16 text-center">
           <p className="text-3xl">🏠</p>
           <p className="mt-3 text-sm font-medium text-gray-600">Nenhum funcionário presente no momento.</p>
-          <p className="mt-1 text-xs text-gray-400">Atualizado automaticamente a cada 2 minutos.</p>
+          <p className="mt-1 text-xs text-gray-400">Atualizado automaticamente a cada minuto.</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -119,7 +120,7 @@ const PresencaAtual = forwardRef<PresencaAtualRef>((_, ref) => {
               </div>
               <div className="p-3">
                 <p className="font-semibold text-gray-900 truncate">{p.funcionario.nome}</p>
-                <p className="text-xs text-gray-500 truncate">{p.funcionario.cargo}</p>
+                <p className="text-xs text-gray-500 truncate">{p.funcao.nome}</p>
                 <p className="mt-1.5 text-xs text-green-600 font-medium">
                   Entrada: {formatarHora(p.timestamp)}
                 </p>
@@ -146,7 +147,7 @@ const PresencaAtual = forwardRef<PresencaAtualRef>((_, ref) => {
             />
             <div className="p-4">
               <p className="text-lg font-bold text-gray-900">{fotoAmpliada.funcionario.nome}</p>
-              <p className="text-sm text-gray-500">{fotoAmpliada.funcionario.cargo}</p>
+              <p className="text-sm text-gray-500">{fotoAmpliada.funcao.nome}</p>
               <p className="mt-1 text-sm text-green-600 font-medium">
                 Entrada: {formatarHora(fotoAmpliada.timestamp)}
               </p>

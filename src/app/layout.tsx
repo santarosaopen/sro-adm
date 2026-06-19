@@ -4,6 +4,7 @@ import './globals.css'
 import Navbar from '@/components/navigation/Navbar'
 import NavigationProgress from '@/components/navigation/NavigationProgress'
 import { ModoProvider } from '@/context/ModoContext'
+import MainWrapper from '@/components/ui/MainWrapper'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -19,7 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ModoProvider>
           <NavigationProgress />
           <Navbar />
-          <main className="mx-auto max-w-7xl px-4 py-8">{children}</main>
+          <MainWrapper>{children}</MainWrapper>
         </ModoProvider>
       </body>
     </html>

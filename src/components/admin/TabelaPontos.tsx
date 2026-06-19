@@ -16,11 +16,18 @@ function nomeFuncionario(registro: RegistroPonto): string {
   return 'Desconhecido'
 }
 
+function nomeFuncao(registro: RegistroPonto): string {
+  if (typeof registro.funcaoId === 'object' && registro.funcaoId !== null) {
+    return registro.funcaoId.nome
+  }
+  return '—'
+}
+
 export default function TabelaPontos({ registros, onDeletar }: Props) {
   if (!registros.length) {
     return (
       <p className="rounded-lg bg-gray-50 px-4 py-8 text-center text-sm text-gray-500">
-        Nenhum registro de horário encontrado.
+        Nenhum registro de presença encontrado.
       </p>
     )
   }
@@ -31,7 +38,7 @@ export default function TabelaPontos({ registros, onDeletar }: Props) {
         <thead className="bg-gray-50">
           <tr>
             <th className="px-4 py-3 text-left font-medium text-gray-700">Funcionário</th>
-            <th className="px-4 py-3 text-center font-medium text-gray-700">Tipo</th>
+            <th className="px-4 py-3 text-left font-medium text-gray-700">Função</th>
             <th className="px-4 py-3 text-left font-medium text-gray-700">Data/Hora</th>
             <th className="px-4 py-3 text-center font-medium text-gray-700">Foto</th>
             <th className="px-4 py-3 text-right font-medium text-gray-700">Ação</th>
@@ -41,11 +48,7 @@ export default function TabelaPontos({ registros, onDeletar }: Props) {
           {registros.map((r) => (
             <tr key={r._id} className="hover:bg-gray-50">
               <td className="px-4 py-3 font-medium text-gray-900">{nomeFuncionario(r)}</td>
-              <td className="px-4 py-3 text-center">
-                <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${r.tipo === 'entrada' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
-                  {r.tipo === 'entrada' ? 'Entrada' : 'Saída'}
-                </span>
-              </td>
+              <td className="px-4 py-3 text-gray-600">{nomeFuncao(r)}</td>
               <td className="px-4 py-3 text-gray-600">{formatarDataHora(r.timestamp)}</td>
               <td className="px-4 py-3 text-center">
                 {r.foto ? (
@@ -64,7 +67,7 @@ export default function TabelaPontos({ registros, onDeletar }: Props) {
                   size="sm"
                   variant="danger"
                   onClick={() => {
-                    if (confirm('Deletar este registro de horário?')) onDeletar(r._id!)
+                    if (confirm('Deletar este registro de presença?')) onDeletar(r._id!)
                   }}
                 >
                   Deletar

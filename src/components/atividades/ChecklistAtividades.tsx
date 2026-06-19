@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Funcionario, ItemAtividade } from '@/types'
+import { Funcao, ItemAtividade } from '@/types'
 
 interface ItemLocal extends ItemAtividade {
   custom?: boolean
@@ -9,11 +9,12 @@ interface ItemLocal extends ItemAtividade {
 
 interface Props {
   funcionarioId: string
+  funcaoId: string
   data: string
   readOnly?: boolean
 }
 
-export default function ChecklistAtividades({ funcionarioId, data, readOnly = false }: Props) {
+export default function ChecklistAtividades({ funcionarioId, funcaoId, data, readOnly = false }: Props) {
   const [itens, setItens] = useState<ItemLocal[]>([])
   const [loading, setLoading] = useState(false)
   const [salvandoAuto, setSalvandoAuto] = useState(false)
@@ -22,15 +23,15 @@ export default function ChecklistAtividades({ funcionarioId, data, readOnly = fa
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    if (!funcionarioId || !data) return
+    if (!funcionarioId || !funcaoId || !data) return
     setLoading(true)
 
     Promise.all([
-      fetch(`/api/funcionarios/${funcionarioId}`).then((r) => r.json()) as Promise<Funcionario>,
-      fetch(`/api/atividades?funcionarioId=${funcionarioId}&data=${data}`).then((r) => r.json()),
+      fetch(`/api/funcoes/${funcaoId}`).then((r) => r.json()) as Promise<Funcao>,
+      fetch(`/api/atividades?funcionarioId=${funcionarioId}&funcaoId=${funcaoId}&data=${data}`).then((r) => r.json()),
     ])
-      .then(([funcionario, registro]) => {
-        const base: string[] = funcionario.atividades || []
+      .then(([funcao, registro]) => {
+        const base: string[] = funcao.atividades || []
         const mapa = new Map<string, ItemLocal>(base.map((nome) => [nome, { nome, concluida: false }]))
 
         if (registro?.itens) {
@@ -38,7 +39,6 @@ export default function ChecklistAtividades({ funcionarioId, data, readOnly = fa
             if (mapa.has(item.nome)) {
               mapa.get(item.nome)!.concluida = item.concluida
             } else {
-              // atividade customizada salva anteriormente
               mapa.set(item.nome, { nome: item.nome, concluida: item.concluida, custom: true })
             }
           })
@@ -47,7 +47,7 @@ export default function ChecklistAtividades({ funcionarioId, data, readOnly = fa
         setItens(Array.from(mapa.values()))
       })
       .finally(() => setLoading(false))
-  }, [funcionarioId, data])
+  }, [funcionarioId, funcaoId, data])
 
   function salvarImediatamente(novosItens: ItemLocal[]) {
     if (saveTimer.current) clearTimeout(saveTimer.current)
@@ -59,6 +59,7 @@ export default function ChecklistAtividades({ funcionarioId, data, readOnly = fa
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             funcionarioId,
+            funcaoId,
             data,
             itens: novosItens.map(({ nome, concluida }) => ({ nome, concluida })),
           }),
@@ -198,7 +199,7 @@ export default function ChecklistAtividades({ funcionarioId, data, readOnly = fa
 
       {!itens.length && (
         <p className="text-sm text-gray-500">
-          Este funcionário não possui atividades cadastradas. Use o campo acima para registrar uma atividade extra ou acesse o Admin para adicionar atividades padrão.
+          Esta função não possui atividades cadastradas. Use o campo acima para registrar uma atividade extra ou acesse o Admin para adicionar atividades à função.
         </p>
       )}
     </div>

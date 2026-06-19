@@ -14,7 +14,19 @@
       "Bash(curl -s \"https://sro-adm.vercel.app/api/ponto\")",
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
-      "Bash(Test-Path \"c:\\\\Users\\\\silvalucas\\\\Documents\\\\SRO\\\\README.md\")"
+      "Bash(Test-Path \"c:\\\\Users\\\\silvalucas\\\\Documents\\\\SRO\\\\README.md\")",
+      "Bash(npm install *)",
+      "PowerShell(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\silvalucas\\\\Documents\\\\SRO\\\\src\\\\app\\\\atividades\\\\escanear\")",
+      "PowerShell(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\silvalucas\\\\Documents\\\\SRO\\\\src\\\\app\\\\atividades\\\\executar\")",
+      "PowerShell(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\silvalucas\\\\Documents\\\\SRO\\\\src\\\\app\\\\api\\\\execucoes\\\\dia\")",
+      "PowerShell(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\silvalucas\\\\Documents\\\\SRO\\\\src\\\\app\\\\api\\\\extras\")",
+      "PowerShell(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\silvalucas\\\\Documents\\\\SRO\\\\src\\\\app\\\\atividades\\\\extras\")",
+      "PowerShell(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\silvalucas\\\\Documents\\\\SRO\\\\src\\\\app\\\\admin\\\\extras\")",
+      "PowerShell(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\silvalucas\\\\Documents\\\\SRO\\\\src\\\\app\\\\api\\\\atividades\\\\sugestoes\")",
+      "PowerShell(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\silvalucas\\\\Documents\\\\SRO\\\\src\\\\app\\\\api\\\\ponto\\\\verificar\")",
+      "PowerShell(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\silvalucas\\\\Documents\\\\SRO\\\\src\\\\app\\\\api\\\\execucoes\\\\verificar\")",
+      "PowerShell(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\silvalucas\\\\Documents\\\\SRO\\\\src\\\\app\\\\admin\\\\atividades\\\\execucoes\")",
+      "PowerShell(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\silvalucas\\\\Documents\\\\SRO\\\\src\\\\app\\\\api\\\\execucoes\\\\periodo\")"
     ]
   }
 }

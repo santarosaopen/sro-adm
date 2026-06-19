@@ -2,7 +2,7 @@ import mongoose, { Schema, Document, Types } from 'mongoose'
 
 export interface IRegistroPonto extends Document {
   funcionarioId: Types.ObjectId
-  tipo: 'entrada' | 'saida'
+  funcaoId: Types.ObjectId
   foto: string
   timestamp: Date
 }
@@ -10,12 +10,12 @@ export interface IRegistroPonto extends Document {
 const RegistroPontoSchema = new Schema<IRegistroPonto>(
   {
     funcionarioId: { type: Schema.Types.ObjectId, ref: 'Funcionario', required: true },
-    tipo: { type: String, enum: ['entrada', 'saida'], required: true },
+    funcaoId: { type: Schema.Types.ObjectId, ref: 'Funcao', required: true },
     foto: { type: String, required: true },
     timestamp: { type: Date, required: true },
   },
   { timestamps: true }
 )
 
-export default mongoose.models.RegistroPonto ||
-  mongoose.model<IRegistroPonto>('RegistroPonto', RegistroPontoSchema)
+try { mongoose.deleteModel('RegistroPonto') } catch {}
+export default mongoose.model<IRegistroPonto>('RegistroPonto', RegistroPontoSchema)

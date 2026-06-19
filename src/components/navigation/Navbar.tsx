@@ -17,7 +17,7 @@ const links = [
 
 export default function Navbar() {
   const pathname = usePathname()
-  const { modo, entrarOperacional, sairOperacional } = useModo()
+  const { modo, entrarOperacional, sairOperacional, funcionarioLogado } = useModo()
   const [mostrarModal, setMostrarModal] = useState(false)
 
   function handleModoClick() {
@@ -78,6 +78,23 @@ export default function Navbar() {
               >
                 {modo === 'operacional' ? 'Operacional' : 'Visualização'}
               </button>
+              {modo === 'operacional' && funcionarioLogado && (
+                <span className="hidden rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 sm:inline">
+                  {funcionarioLogado.nome}
+                </span>
+              )}
+              {modo === 'operacional' && (
+                <button
+                  onClick={sairOperacional}
+                  title="Sair do modo operacional"
+                  className="flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-600 transition-colors hover:bg-red-100"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
+                  </svg>
+                  Sair
+                </button>
+              )}
               <MobileMenu pathname={pathname} />
             </div>
           </div>
