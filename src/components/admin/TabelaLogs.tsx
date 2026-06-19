@@ -71,7 +71,7 @@ export default function TabelaLogs({ logs }: Props) {
                   {log.acao.replace(/_/g, ' ')}
                 </span>
               </td>
-              <td className="py-2.5 text-gray-600">{log.descricao}</td>
+              <td className="max-w-[200px] break-words py-2.5 text-gray-600 sm:max-w-none">{log.descricao}</td>
             </tr>
           ))}
         </tbody>

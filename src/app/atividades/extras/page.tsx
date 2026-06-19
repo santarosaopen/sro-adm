@@ -63,7 +63,7 @@ export default function PaginaExtras() {
         <div className="flex flex-wrap gap-4 sm:items-end">
           <div>
             <p className="mb-1 text-xs font-medium text-gray-600">Período</p>
-            <div className="flex gap-1">
+            <div className="flex flex-wrap gap-1">
               {(['dia', 'semana', 'mes'] as Periodo[]).map((p) => (
                 <button key={p} onClick={() => { setPeriodo(p); setDataInicio(''); setDataFim('') }}
                   className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${periodo === p ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
@@ -75,17 +75,17 @@ export default function PaginaExtras() {
           <div>
             <label className="mb-1 block text-xs font-medium text-gray-600">Data início</label>
             <input type="date" value={dataInicio} max={dataHoje()} onChange={(e) => { setDataInicio(e.target.value); setPeriodo('range') }}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+              className="w-full sm:w-auto rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-gray-600">Data fim</label>
             <input type="date" value={dataFim} max={dataHoje()} onChange={(e) => { setDataFim(e.target.value); setPeriodo('range') }}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+              className="w-full sm:w-auto rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-gray-600">Funcionário</label>
             <select value={funcionarioId} onChange={(e) => setFuncionarioId(e.target.value)}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+              className="w-full sm:w-auto rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
               <option value="">Todos</option>
               {funcionarios.map((f) => <option key={f._id} value={f._id}>{f.nome}</option>)}
             </select>

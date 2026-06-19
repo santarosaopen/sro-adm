@@ -116,18 +116,18 @@ export default function PaginaTodasExecucoes() {
             <label className="mb-1 block text-xs font-medium text-gray-600">Data início</label>
             <input type="date" value={dataInicio} max={dataHoje()}
               onChange={(e) => { setDataInicio(e.target.value); setPeriodo('range') }}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+              className="w-full sm:w-auto rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-gray-600">Data fim</label>
             <input type="date" value={dataFim} max={dataHoje()}
               onChange={(e) => { setDataFim(e.target.value); setPeriodo('range') }}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+              className="w-full sm:w-auto rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-gray-600">Função</label>
             <select value={filtroFuncao} onChange={(e) => setFiltroFuncao(e.target.value)}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+              className="w-full sm:w-auto rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
               <option value="">Todas</option>
               {funcoes.map((f) => <option key={f._id} value={f._id}>{f.nome}</option>)}
             </select>
@@ -145,7 +145,7 @@ export default function PaginaTodasExecucoes() {
       )}
 
       {!carregando && execucoes.length > 0 && (
-        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
               <tr>

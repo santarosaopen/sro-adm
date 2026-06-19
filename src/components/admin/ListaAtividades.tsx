@@ -273,7 +273,7 @@ export default function ListaAtividades({ atividades, onEditar, onDeletar, onTog
         )}
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-gray-200">
+      <div className="overflow-x-auto rounded-lg border border-gray-200">
         <table className="w-full text-sm">
           <thead className="bg-gray-50">
             <tr>

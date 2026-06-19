@@ -113,7 +113,7 @@ export default function Navbar() {
 
 function MobileMenu({ pathname }: { pathname: string }) {
   return (
-    <div className="flex gap-1 md:hidden">
+    <div className="flex flex-wrap gap-1 md:hidden">
       {links.slice(1).map((link) => {
         const isActive = pathname.startsWith(link.href)
         return (

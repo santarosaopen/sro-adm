@@ -29,7 +29,7 @@ export default function PaginaAdminDashboard() {
         <h1 className="text-2xl font-bold text-gray-900">Área Administrativa</h1>
         <p className="mt-1 text-sm text-gray-500">Selecione um módulo para gerenciar</p>
       </div>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {cards.map((c) => (
           <Link key={c.href} href={c.href}
             className={`flex flex-col gap-1 rounded-xl border p-5 transition-colors ${cores[c.cor]}`}>

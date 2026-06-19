@@ -369,7 +369,7 @@ export default function PaginaPonto() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Registro de Presença</h1>
           <p className="mt-1 text-sm text-gray-500">Registre a entrada com foto</p>
@@ -426,7 +426,7 @@ export default function PaginaPonto() {
           <div className="mb-5 flex flex-wrap items-end gap-3">
             <div>
               <p className="mb-1 text-xs font-medium text-gray-600">Período</p>
-              <div className="flex gap-1">
+              <div className="flex flex-wrap gap-1">
                 {(['semana', 'mes', 'ano'] as Periodo[]).map((p) => (
                   <button
                     key={p}
@@ -444,7 +444,7 @@ export default function PaginaPonto() {
                 type="date"
                 value={dataInicio}
                 onChange={(e) => { setDataInicio(e.target.value); setPeriodo('range') }}
-                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full sm:w-auto rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
             <div>
@@ -453,7 +453,7 @@ export default function PaginaPonto() {
                 type="date"
                 value={dataFim}
                 onChange={(e) => { setDataFim(e.target.value); setPeriodo('range') }}
-                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full sm:w-auto rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
             {(dataInicio || dataFim) && (

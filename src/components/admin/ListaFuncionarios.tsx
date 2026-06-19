@@ -20,7 +20,7 @@ export default function ListaFuncionarios({ funcionarios, onEditar, onDeletar, o
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-200">
+    <div className="overflow-x-auto rounded-lg border border-gray-200">
       <table className="w-full text-sm">
         <thead className="bg-gray-50">
           <tr>

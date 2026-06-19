@@ -50,9 +50,9 @@ export default function PaginaUsuarios() {
           {usuarios.length === 0 ? <p className="py-4 text-center text-sm text-gray-400">Nenhum usuário.</p> : (
             <div className="divide-y divide-gray-100">
               {usuarios.map((u) => (
-                <div key={u._id} className="flex items-center justify-between py-3">
+                <div key={u._id} className="flex flex-wrap items-center justify-between gap-2 py-3">
                   <div><p className="font-medium text-gray-900">{u.nome}</p><p className="text-sm text-gray-500">@{u.username}</p></div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-1.5">
                     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${u.ativo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{u.ativo ? 'Ativo' : 'Inativo'}</span>
                     <Button variant="secondary" className="text-xs" onClick={() => setEditando(u)}>Editar</Button>
                     <Button variant="secondary" className="text-xs" onClick={() => toggleAtivo(u)}>{u.ativo ? 'Desativar' : 'Ativar'}</Button>

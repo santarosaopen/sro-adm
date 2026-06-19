@@ -73,7 +73,7 @@ export default function PaginaPontos() {
           </div>
           <div>
             <p className="mb-1 text-sm font-medium text-gray-700">Período</p>
-            <div className="flex gap-1">
+            <div className="flex flex-wrap gap-1">
               {(['semana', 'mes', 'ano'] as Periodo[]).map((p) => (
                 <button key={p} onClick={() => { setPeriodo(p); setDataInicio(''); setDataFim('') }}
                   className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${periodo === p ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
@@ -84,11 +84,11 @@ export default function PaginaPontos() {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">Início</label>
-            <input type="date" value={dataInicio} onChange={(e) => { setDataInicio(e.target.value); setPeriodo('range') }} className="rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+            <input type="date" value={dataInicio} onChange={(e) => { setDataInicio(e.target.value); setPeriodo('range') }} className="w-full sm:w-auto rounded-lg border border-gray-300 px-3 py-2 text-sm" />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">Fim</label>
-            <input type="date" value={dataFim} onChange={(e) => { setDataFim(e.target.value); setPeriodo('range') }} className="rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+            <input type="date" value={dataFim} onChange={(e) => { setDataFim(e.target.value); setPeriodo('range') }} className="w-full sm:w-auto rounded-lg border border-gray-300 px-3 py-2 text-sm" />
           </div>
         </div>
       </Card>
