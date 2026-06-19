@@ -23,24 +23,54 @@ export default function CapturaFotos({ fotos, onChange, max, obrigatorio = true 
     streamRef.current = null
   }, [])
 
-  const iniciarCamera = useCallback(async (deviceId?: string) => {
+  const iniciarComDeviceId = useCallback(async (deviceId: string) => {
     pararStream()
     setErroCamera('')
     try {
-      const constraints: MediaStreamConstraints = {
-        video: deviceId ? { deviceId: { exact: deviceId } } : true,
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { deviceId: { exact: deviceId } },
+      })
+      streamRef.current = stream
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+        await videoRef.current.play()
       }
-      const stream = await navigator.mediaDevices.getUserMedia(constraints)
+    } catch (err: unknown) {
+      const name = err instanceof DOMException ? err.name : ''
+      if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+        setErroCamera('Permissão de câmera negada. Permita o acesso nas configurações do navegador.')
+      } else {
+        setErroCamera('Não foi possível acessar a câmera. Verifique se outro aplicativo está usando-a.')
+      }
+    }
+  }, [pararStream])
+
+  // Abre a câmera pela primeira vez: obtém permissão, enumera dispositivos
+  // e seleciona automaticamente a câmera traseira se disponível
+  const iniciarCamera = useCallback(async () => {
+    pararStream()
+    setErroCamera('')
+    try {
+      // 1ª abertura sem deviceId para obter permissão e labels
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' } },
+      })
       streamRef.current = stream
       if (videoRef.current) {
         videoRef.current.srcObject = stream
         await videoRef.current.play()
       }
 
-      // Enumera câmeras após obter permissão (labels só ficam disponíveis depois)
+      // Enumera câmeras agora que temos permissão
       const devices = await navigator.mediaDevices.enumerateDevices()
       const vids = devices.filter((d) => d.kind === 'videoinput')
       setCameras(vids)
+
+      // Descobre qual câmera está ativa e sincroniza o índice
+      const trackSettings = stream.getVideoTracks()[0]?.getSettings()
+      const activeId = trackSettings?.deviceId
+      const idx = activeId ? vids.findIndex((v) => v.deviceId === activeId) : 0
+      setCameraIdx(idx >= 0 ? idx : 0)
     } catch (err: unknown) {
       const name = err instanceof DOMException ? err.name : ''
       if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
@@ -64,11 +94,13 @@ export default function CapturaFotos({ fotos, onChange, max, obrigatorio = true 
     return pararStream
   }, [capturando, iniciarCamera, pararStream])
 
+  // Troca de câmera: calcula o próximo índice, atualiza estado E inicia imediatamente
+  // sem depender do re-render para obter o novo índice
   async function trocarCamera() {
     if (cameras.length <= 1) return
     const novoIdx = (cameraIdx + 1) % cameras.length
     setCameraIdx(novoIdx)
-    await iniciarCamera(cameras[novoIdx].deviceId)
+    await iniciarComDeviceId(cameras[novoIdx].deviceId)
   }
 
   function capturar() {
@@ -94,7 +126,6 @@ export default function CapturaFotos({ fotos, onChange, max, obrigatorio = true 
 
   return (
     <div className="space-y-4">
-      {/* Miniaturas */}
       {fotos.length > 0 && (
         <div className="flex flex-wrap gap-3">
           {fotos.map((f, i) => (
@@ -112,7 +143,6 @@ export default function CapturaFotos({ fotos, onChange, max, obrigatorio = true 
         </div>
       )}
 
-      {/* Câmera */}
       {capturando && (
         <div className="space-y-3">
           {erroCamera ? (
@@ -121,19 +151,12 @@ export default function CapturaFotos({ fotos, onChange, max, obrigatorio = true 
             </div>
           ) : (
             <div className="aspect-video overflow-hidden rounded-xl bg-black">
-              <video
-                ref={videoRef}
-                playsInline
-                muted
-                className="h-full w-full object-cover"
-              />
+              <video ref={videoRef} playsInline muted className="h-full w-full object-cover" />
             </div>
           )}
           <div className="flex gap-2">
             {!erroCamera && (
-              <Button onClick={capturar} className="flex-1 justify-center">
-                Capturar
-              </Button>
+              <Button onClick={capturar} className="flex-1 justify-center">Capturar</Button>
             )}
             {cameras.length > 1 && !erroCamera && (
               <Button variant="secondary" onClick={trocarCamera} title="Trocar câmera">
@@ -154,7 +177,6 @@ export default function CapturaFotos({ fotos, onChange, max, obrigatorio = true 
         </div>
       )}
 
-      {/* Botão abrir câmera */}
       {!capturando && podeAdicionar && label && (
         <button
           onClick={() => { setErroCamera(''); setCapturando(true) }}
